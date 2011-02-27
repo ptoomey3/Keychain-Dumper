@@ -43,4 +43,4 @@ Some keychain entries are available regardless of whether the phone is locked or
 
 ## Contact & Help
 
-If you find a bug you can [open an issue](http://github.com/ptoomey3/keychain_dumper/issues).
+If you find a bug you can [open an issue](http://github.com/ptoomey3/Keychain-Dumper/issues).
