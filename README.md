@@ -2,7 +2,7 @@
 
 ## Building
 
-In order to build keychain_dumper you must first create two symbolic links to the appropriate iOS SDK directories. At the time the tool was developed the iOS 4.2 SDK was current and you may need to update the target directories based on the current SDk that is installed.  
+In order to build keychain_dumper you must first create two symbolic links to the appropriate iOS SDK directories. At the time the tool was developed the iOS 4.2 SDK was current and you may need to update the target directories based on the current SDK that is installed.  
 
 	ln -s /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/ sdk
 	ln -s /Developer/Platforms/iPhoneOS.platform/Developer toolchain
