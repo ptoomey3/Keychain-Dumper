@@ -7,7 +7,7 @@ In order to build keychain_dumper you must first create two symbolic links to th
 	ln -s /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/ sdk
 	ln -s /Developer/Platforms/iPhoneOS.platform/Developer toolchain
 
-Once you have created the symbolic links your directory structure should similar to:
+Once you have created the symbolic links your directory structure should look similar to:
 
 	-rwxr-xr-x@ 1 userid  staff  1283 Feb 20 19:32 Makefile
 	-rwxr-xr-x@ 1 userid  staff   795 Oct  7 12:09 README.md
