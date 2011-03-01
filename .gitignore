@@ -1,5 +1,4 @@
 toolchain
 sdk
 main.o
-keychain_dumper
 .DS_Store
