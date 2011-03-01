@@ -112,7 +112,7 @@ void dumpKeychainItems()
 	}
 	else
 	{
-		printToStdOut(@"No Keychain items found. Please see the readme.ml to get started\n");
+		printToStdOut(@"No Keychain items found. Please see the README.md to get started\n");
 		
 	}
 	
