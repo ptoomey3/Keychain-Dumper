@@ -1,32 +1,32 @@
 /* 
-* Copyright (c) 2011, Neohapsis, Inc.
-* All rights reserved.
-*
-* Implementation by Patrick Toomey
-*
-* Redistribution and use in source and binary forms, with or without modification, 
-* are permitted provided that the following conditions are met: 
-*
-*  - Redistributions of source code must retain the above copyright notice, this list 
-*   of conditions and the following disclaimer. 
-*  - Redistributions in binary form must reproduce the above copyright notice, this 
-*    list of conditions and the following disclaimer in the documentation and/or 
-*    other materials provided with the distribution. 
-*  - Neither the name of Neohapsis nor the names of its contributors may be used to 
-*    endorse or promote products derived from this software without specific prior 
-*    written permission. 
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
-* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
-* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR 
-* ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
-* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
-* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
-* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
-* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ * Copyright (c) 2011, Neohapsis, Inc.
+ * All rights reserved.
+ *
+ * Implementation by Patrick Toomey
+ *
+ * Redistribution and use in source and binary forms, with or without modification, 
+ * are permitted provided that the following conditions are met: 
+ *
+ *  - Redistributions of source code must retain the above copyright notice, this list 
+ *   of conditions and the following disclaimer. 
+ *  - Redistributions in binary form must reproduce the above copyright notice, this 
+ *    list of conditions and the following disclaimer in the documentation and/or 
+ *    other materials provided with the distribution. 
+ *  - Neither the name of Neohapsis nor the names of its contributors may be used to 
+ *    endorse or promote products derived from this software without specific prior 
+ *    written permission. 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR 
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 #import <UIKit/UIKit.h>
 #import <Security/Security.h>
@@ -60,12 +60,12 @@ NSString * convertKeychainBlobtoUTFString(id inputData)
 	
 }
 
-NSString * getKeychainSecureData(NSDictionary * keychainItem) 
+NSString * getKeychainSecureData(NSDictionary * keychainItem, CFTypeRef kSecClassType) 
 {
 	NSMutableDictionary *keychainItemQuery = [NSMutableDictionary dictionaryWithDictionary:keychainItem];
 	NSString *keychainData = nil;
 	
-	[keychainItemQuery setObject:(id)kSecClassGenericPassword forKey:(id)kSecClass];
+	[keychainItemQuery setObject:(id)kSecClassType forKey:(id)kSecClass];
 	[keychainItemQuery setObject:(id)kSecMatchLimitOne forKey:(id)kSecMatchLimit];
 	[keychainItemQuery setObject:(id)kCFBooleanTrue forKey:(id)kSecReturnData];
 	
@@ -105,18 +105,48 @@ void dumpKeychainItems()
 			printToStdOut(@"Entitlement Group: %@\n", [keychainItem objectForKey:(id)kSecAttrAccessGroup]);
 			printToStdOut(@"Label: %@\n", convertKeychainBlobtoUTFString([keychainItem objectForKey:(id)kSecAttrLabel]));
 			printToStdOut(@"Generic Field: %@\n", convertKeychainBlobtoUTFString([keychainItem objectForKey:(id)kSecAttrGeneric]));
-			printToStdOut(@"Keychain Data: %@\n\n", getKeychainSecureData(keychainItem));
+			printToStdOut(@"Keychain Data: %@\n\n", getKeychainSecureData(keychainItem, kSecClassGenericPassword));
 			
 		}
 		
 	}
 	else
 	{
-		printToStdOut(@"No Keychain items found. Please see the README.md to get started\n");
+		printToStdOut(@"No Generic Password Keychain items found. Please see the README.md to get started\n");
 		
 	}
 	
 	[keychainItems release];
+    keychainItems = nil;
+    
+    NSMutableDictionary *internetPasswordQuery = [[NSMutableDictionary alloc] init];
+	
+	[internetPasswordQuery setObject:(id)kSecClassInternetPassword forKey:(id)kSecClass];
+	[internetPasswordQuery setObject:(id)kSecMatchLimitAll forKey:(id)kSecMatchLimit];
+	[internetPasswordQuery setObject:(id)kCFBooleanTrue forKey:(id)kSecReturnAttributes];
+	
+	
+	if (SecItemCopyMatching((CFDictionaryRef)internetPasswordQuery, (CFTypeRef *)&keychainItems) == noErr)
+	{
+		NSDictionary *keychainItem = nil;
+		for (keychainItem in (NSArray *) keychainItems) {
+			printToStdOut(@"Server: %@\n", [keychainItem objectForKey:(id)kSecAttrServer]);
+			printToStdOut(@"Account: %@\n", [keychainItem objectForKey:(id)kSecAttrAccount]);
+			printToStdOut(@"Entitlement Group: %@\n", [keychainItem objectForKey:(id)kSecAttrAccessGroup]);
+			printToStdOut(@"Label: %@\n", convertKeychainBlobtoUTFString([keychainItem objectForKey:(id)kSecAttrLabel]));
+			printToStdOut(@"Keychain Data: %@\n\n", getKeychainSecureData(keychainItem, kSecClassInternetPassword));
+			
+		}
+		
+	}
+	else
+	{
+		printToStdOut(@"No Internet Password Keychain items found. Please see the README.md to get started\n");
+		
+	}
+	
+	[keychainItems release];
+    
 	return;
 }
 
@@ -127,15 +157,15 @@ void dumpKeychainEntitlements()
     sqlite3 *keychainDB;
     sqlite3_stmt *statement;
 	NSMutableString *entitlementXML = [NSMutableString stringWithString:@"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-																		 "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
-																		 "<plist version=\"1.0\">\n"
-																		 "\t<dict>\n"
-																		 "\t\t<key>keychain-access-groups</key>\n"
-																	     "\t\t<array>\n"];
+                                       "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
+                                       "<plist version=\"1.0\">\n"
+                                       "\t<dict>\n"
+                                       "\t\t<key>keychain-access-groups</key>\n"
+                                       "\t\t<array>\n"];
 	
     if (sqlite3_open(dbpath, &keychainDB) == SQLITE_OK)
     {
-        const char *query_stmt = "SELECT DISTINCT agrp FROM genp";
+        const char *query_stmt = "SELECT DISTINCT agrp FROM genp UNION SELECT DISTINCT agrp FROM inet";
 		
         if (sqlite3_prepare_v2(keychainDB, query_stmt, -1, &statement, NULL) == SQLITE_OK)
         {
@@ -153,8 +183,8 @@ void dumpKeychainEntitlements()
             printToStdOut(@"Unknown error querying keychain database\n");
 		}
 		[entitlementXML appendString:@"\t\t</array>\n"
-									  "\t</dict>\n"
-									  "</plist>\n"];
+         "\t</dict>\n"
+         "</plist>\n"];
 		sqlite3_close(keychainDB);
 		printToStdOut(@"%@", entitlementXML);
 	}
@@ -183,7 +213,7 @@ int main(void)
     {
 		dumpKeychainItems();
     }
-
+    
 	[pool drain];
 }
 
