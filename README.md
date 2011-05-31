@@ -25,7 +25,7 @@ If all goes well you should have a binary "keychain_dumper" placed in the same d
 
 Before proceeding ensure you have installed "ldid" on the target iOS device from cydia (these directions assume the target device has already been jailbroken).  
 
-Upload keychain_dumper to a directory of your choice on the target device.
+Upload keychain_dumper to a directory of your choice on the target device (I have used /private/var during testing).  Also, once uploaded, be sure to validate that keychain_dumper is executable (chmod +x ./keychain_dumper if it isn't) and validate that /private/var/Keychains/keychain-2.db is world readable (chmod +r /private/var/Keychains/keychain-2.db if it isn't).
 
 Dump all of the entitlements necessary to access the entries in your target's keychain.
 
