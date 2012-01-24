@@ -45,7 +45,7 @@ You should now be able to compile the project using the included makefile.
 
 	make
 
-If all goes well you should have a binary "keychain_dumper" placed in the same directory as all of the other project files.  
+If all goes well you should have a binary `keychain_dumper` placed in the same directory as all of the other project files.  
 
 
 ### Sign It
