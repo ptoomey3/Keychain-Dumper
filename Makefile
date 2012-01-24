@@ -14,7 +14,7 @@ TOOLCHAIN_DIR=$(ROOT)/toolchain
 SYSROOT = $(ROOT)/sdk
 
 BIN=$(TOOLCHAIN_DIR)/usr/bin
-GCC_BIN = $(BIN)/gcc-4.2
+GCC_BIN = $(BIN)/gcc
 
 
 ARCH_FLAGS=-arch armv6
