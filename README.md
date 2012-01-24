@@ -50,7 +50,7 @@ If all goes well you should have a binary `keychain_dumper` placed in the same d
 
 ### Sign It
 
-Using the entitlements.xml file found in the projects Git repository, sign the binary.  The below certificate was named "Test Cert 1", but you should subsitute the name you used during the certificate creation step above.  
+Using the entitlements.xml file found in the Keychain-Dumper Git repository, sign the binary.  The below certificate was named "Test Cert 1", but you should subsitute the name you used during the certificate creation step above.  
 
 	codesign -fs "Test Cert 1" --entitlements entitlements.xml keychain_dumper
 
