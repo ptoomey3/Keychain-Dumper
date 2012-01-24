@@ -27,7 +27,7 @@ Enter a name for the certificate, and make note of this name, as you will need i
 
 ### Build It
 
-In order to build keychain_dumper you must first create two symbolic links to the appropriate iOS SDK directories. At the time the tool was developed the iOS 5.0 SDK was current and you may need to update the target directories based on the current SDK that is installed.  
+In order to build Keychain Dumper you must first create two symbolic links to the appropriate iOS SDK directories. At the time the tool was developed the iOS 5.0 SDK was current and you may need to update the target directories based on the current SDK that is installed.  
 
 	ln -s /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk/ sdk
 	ln -s /Developer/Platforms/iPhoneOS.platform/Developer toolchain
@@ -54,7 +54,7 @@ Using the entitlements.xml file found in the projects Git repository, sign the b
 
 	codesign -fs "Test Cert 1" --entitlements entitlements.xml keychain_dumper
 
-You should now be able to follow the directions specified in the Usage section above.  If you don't want to use the wildcard entitlment file that is provided, you can also sign specific entitlements into the binary.  Using the unsigned keychain_dumper you can get a list of entitelments that exist on your specific iOS device by using the `-e` flag on keychain_dumper.  For example, you can run keychain_dumper as follows:
+You should now be able to follow the directions specified in the Usage section above.  If you don't want to use the wildcard entitlment file that is provided, you can also sign specific entitlements into the binary.  Using the unsigned keychain_dumper you can get a list of entitelments that exist on your specific iOS device by using the `-e` flag.  For example, you can run Keychain Dumper as follows:
 
 	./keychain_dumper -e > /var/tmp/entitlements.xml
 
