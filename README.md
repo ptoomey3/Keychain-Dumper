@@ -4,7 +4,7 @@
 
 In order to build keychain_dumper you must first create two symbolic links to the appropriate iOS SDK directories. At the time the tool was developed the iOS 4.2 SDK was current and you may need to update the target directories based on the current SDK that is installed.  
 
-	ln -s /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/ sdk
+	ln -s /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk/ sdk
 	ln -s /Developer/Platforms/iPhoneOS.platform/Developer toolchain
 
 Once you have created the symbolic links your directory structure should look similar to:
@@ -12,8 +12,8 @@ Once you have created the symbolic links your directory structure should look si
 	-rwxr-xr-x@ 1 userid  staff  1283 Feb 20 19:32 Makefile
 	-rwxr-xr-x@ 1 userid  staff   795 Oct  7 12:09 README.md
 	-rw-r--r--@ 1 userid  staff  5476 Feb 20 18:10 main.m
-	lrwxr-xr-x  1 userid  staff    70 Feb 27 14:40 sdk -> /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.2.sdk/
-	lrwxr-xr-x  1 userid  staff    48 Feb 14 16:35 toolchain -> /Developer/Platforms/iPhoneOS.platform/Developer
+	lrwxr-xr-x  1 userid  staff    70 Feb 27 14:40 sdk -> /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk/ 
+	lrwxr-xr-x  1 userid  staff    48 Feb 14 16:35 toolchain -> /Developer/Platforms/iPhoneOS.platform/Developer 
 
 You should now be able to compile the project using the included makefile.
 
