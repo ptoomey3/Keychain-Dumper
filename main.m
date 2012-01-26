@@ -42,114 +42,6 @@ void printToStdOut(NSString *format, ...)
 	[formattedString release];
 }
 
-NSString * convertKeychainBlobtoUTFString(id inputData)
-{
-	// if we got nothing back then we likely have a db entry that is empty that defaults to null
-	if ( inputData == nil )
-		return @"";
-	//for some reason the return value from the keychain seems to always be either a NSData* or an NSSTRING*
-	//if it doesn't have a "bytes" selector we will just assume it is a string
-	if ( [inputData respondsToSelector:@selector(bytes)] == NO )
-		return inputData;
-	NSString *returnString = [[[NSString alloc] initWithBytes:[inputData bytes] length:[inputData length] encoding:NSUTF8StringEncoding] autorelease];
-	if (returnString != nil)
-		return returnString;
-	else {
-		return @"";
-	}
-	
-}
-
-NSString * getKeychainSecureData(NSDictionary * keychainItem, CFTypeRef kSecClassType) 
-{
-	NSMutableDictionary *keychainItemQuery = [NSMutableDictionary dictionaryWithDictionary:keychainItem];
-	NSString *keychainData = nil;
-	
-	[keychainItemQuery setObject:(id)kSecClassType forKey:(id)kSecClass];
-	[keychainItemQuery setObject:(id)kSecMatchLimitOne forKey:(id)kSecMatchLimit];
-	[keychainItemQuery setObject:(id)kCFBooleanTrue forKey:(id)kSecReturnData];
-	
-	NSData *keychainDataBlob = nil;
-	
-	if (SecItemCopyMatching((CFDictionaryRef)keychainItemQuery, (CFTypeRef *)&keychainDataBlob) == noErr)
-	{
-		keychainData = convertKeychainBlobtoUTFString(keychainDataBlob);
-	}
-	else
-	{
-		keychainData =  @"<Not Accessible>";
-	}
-	
-	[keychainDataBlob release];
-	
-	return keychainData;
-}
-
-void dumpKeychainItems()
-{
-	NSMutableDictionary *genericPasswordQuery = [[NSMutableDictionary alloc] init];
-	
-	[genericPasswordQuery setObject:(id)kSecClassGenericPassword forKey:(id)kSecClass];
-	[genericPasswordQuery setObject:(id)kSecMatchLimitAll forKey:(id)kSecMatchLimit];
-	[genericPasswordQuery setObject:(id)kCFBooleanTrue forKey:(id)kSecReturnAttributes];
-	
-	
-	NSArray *keychainItems = nil;
-	
-	if (SecItemCopyMatching((CFDictionaryRef)genericPasswordQuery, (CFTypeRef *)&keychainItems) == noErr)
-	{
-		NSDictionary *keychainItem = nil;
-		for (keychainItem in (NSArray *) keychainItems) {
-			printToStdOut(@"Service: %@\n", [keychainItem objectForKey:(id)kSecAttrService]);
-			printToStdOut(@"Account: %@\n", [keychainItem objectForKey:(id)kSecAttrAccount]);
-			printToStdOut(@"Entitlement Group: %@\n", [keychainItem objectForKey:(id)kSecAttrAccessGroup]);
-			printToStdOut(@"Label: %@\n", convertKeychainBlobtoUTFString([keychainItem objectForKey:(id)kSecAttrLabel]));
-			printToStdOut(@"Generic Field: %@\n", convertKeychainBlobtoUTFString([keychainItem objectForKey:(id)kSecAttrGeneric]));
-			printToStdOut(@"Keychain Data: %@\n\n", getKeychainSecureData(keychainItem, kSecClassGenericPassword));
-			
-		}
-		
-	}
-	else
-	{
-		printToStdOut(@"No Generic Password Keychain items found. Please see the README.md to get started\n");
-		
-	}
-	
-	[keychainItems release];
-    keychainItems = nil;
-    
-    NSMutableDictionary *internetPasswordQuery = [[NSMutableDictionary alloc] init];
-	
-	[internetPasswordQuery setObject:(id)kSecClassInternetPassword forKey:(id)kSecClass];
-	[internetPasswordQuery setObject:(id)kSecMatchLimitAll forKey:(id)kSecMatchLimit];
-	[internetPasswordQuery setObject:(id)kCFBooleanTrue forKey:(id)kSecReturnAttributes];
-	
-	
-	if (SecItemCopyMatching((CFDictionaryRef)internetPasswordQuery, (CFTypeRef *)&keychainItems) == noErr)
-	{
-		NSDictionary *keychainItem = nil;
-		for (keychainItem in (NSArray *) keychainItems) {
-			printToStdOut(@"Server: %@\n", [keychainItem objectForKey:(id)kSecAttrServer]);
-			printToStdOut(@"Account: %@\n", [keychainItem objectForKey:(id)kSecAttrAccount]);
-			printToStdOut(@"Entitlement Group: %@\n", [keychainItem objectForKey:(id)kSecAttrAccessGroup]);
-			printToStdOut(@"Label: %@\n", convertKeychainBlobtoUTFString([keychainItem objectForKey:(id)kSecAttrLabel]));
-			printToStdOut(@"Keychain Data: %@\n\n", getKeychainSecureData(keychainItem, kSecClassInternetPassword));
-			
-		}
-		
-	}
-	else
-	{
-		printToStdOut(@"No Internet Password Keychain items found. Please see the README.md to get started\n");
-		
-	}
-	
-	[keychainItems release];
-    
-	return;
-}
-
 void dumpKeychainEntitlements()
 {
     NSString *databasePath = @"/var/Keychains/keychain-2.db";
@@ -195,25 +87,169 @@ void dumpKeychainEntitlements()
 }
 
 
-int main(void) 
+void processCommandLineOptions(int argc, char **argv, NSMutableArray *arguments) {
+	int argument;
+	if (argc == 1) {
+		[arguments addObject:(id)kSecClassGenericPassword];
+		[arguments addObject:(id)kSecClassInternetPassword];
+		[arguments addObject:(id)kSecClassIdentity];
+		[arguments addObject:(id)kSecClassCertificate];
+		[arguments addObject:(id)kSecClassKey];
+		return;
+	}
+	while ((argument = getopt (argc, argv, "egnick")) != -1) {
+		switch (argument) {
+			case 'e':
+				// if they want to dump entitlements we will assume they don't want to dump anything else
+				[arguments addObject:@"dumpEntitlements"];
+				return;
+			case 'g':
+				[arguments addObject:(id)kSecClassGenericPassword];
+				break;
+			case 'n':
+				[arguments addObject:(id)kSecClassInternetPassword];
+				break;
+			case 'i':
+				[arguments addObject:(id)kSecClassIdentity];
+				break;
+			case 'c':
+				[arguments addObject:(id)kSecClassCertificate];
+				break;
+			case 'k':
+				[arguments addObject:(id)kSecClassKey];
+				break;
+			case '?':
+			    printToStdOut(@"Usage: keychain_dumper [-e]|[-gnick]");
+			 	exit(EXIT_FAILURE);
+			default:
+				continue;
+		}
+	}
+
+	return;
+
+}
+
+NSArray * getKeychainObjectsForSecClass(CFTypeRef kSecClassType) {
+	NSMutableDictionary *genericQuery = [[NSMutableDictionary alloc] init];
+	
+	[genericQuery setObject:(id)kSecClassType forKey:(id)kSecClass];
+	[genericQuery setObject:(id)kSecMatchLimitAll forKey:(id)kSecMatchLimit];
+	[genericQuery setObject:(id)kCFBooleanTrue forKey:(id)kSecReturnAttributes];
+	[genericQuery setObject:(id)kCFBooleanTrue forKey:(id)kSecReturnRef];
+	[genericQuery setObject:(id)kCFBooleanTrue forKey:(id)kSecReturnData];
+	
+	NSArray *keychainItems = nil;
+	if (SecItemCopyMatching((CFDictionaryRef)genericQuery, (CFTypeRef *)&keychainItems) != noErr)
+	{
+		keychainItems = nil;
+	}
+	[genericQuery release];
+	return keychainItems;
+}
+
+NSString * getEmptyKeychainItemString(CFTypeRef kSecClassType) {
+	if (kSecClassType == kSecClassGenericPassword) {
+		return @"No Generic Password Keychain items found.\n";
+	}
+	else if (kSecClassType == kSecClassInternetPassword) {
+		return @"No Internet Password Keychain items found.\n";	
+	} 
+	else if (kSecClassType == kSecClassIdentity) {
+		return @"No Identity Keychain items found.\n";
+	}
+	else if (kSecClassType == kSecClassCertificate) {
+		return @"No Certificate Keychain items found.\n";	
+	}
+	else if (kSecClassType == kSecClassKey) {
+		return @"No Key Keychain items found.\n";	
+	}
+	else {
+		return @"Unknown Security Class\n";
+	}
+	
+}
+
+void printGenericPassword(NSDictionary *passwordItem) {
+	printToStdOut(@"Service: %@\n", [passwordItem objectForKey:(id)kSecAttrService]);
+	printToStdOut(@"Account: %@\n", [passwordItem objectForKey:(id)kSecAttrAccount]);
+	printToStdOut(@"Entitlement Group: %@\n", [passwordItem objectForKey:(id)kSecAttrAccessGroup]);
+	printToStdOut(@"Label: %@\n", [passwordItem objectForKey:(id)kSecAttrLabel]);
+	printToStdOut(@"Generic Field: %@\n", [[passwordItem objectForKey:(id)kSecAttrGeneric] description]);
+	NSData* passwordData = [passwordItem objectForKey:(id)kSecValueData];
+	printToStdOut(@"Keychain Data: %@\n\n", [[NSString alloc] initWithData:passwordData encoding:NSUTF8StringEncoding]);
+}
+
+void printInternetPassword(NSDictionary *passwordItem) {
+	printToStdOut(@"Server: %@\n", [passwordItem objectForKey:(id)kSecAttrServer]);
+	printToStdOut(@"Account: %@\n", [passwordItem objectForKey:(id)kSecAttrAccount]);
+	printToStdOut(@"Entitlement Group: %@\n", [passwordItem objectForKey:(id)kSecAttrAccessGroup]);
+	printToStdOut(@"Label: %@\n", [passwordItem objectForKey:(id)kSecAttrLabel]);
+	NSData* passwordData = [passwordItem objectForKey:(id)kSecValueData];
+	printToStdOut(@"Keychain Data: %@\n\n", [[NSString alloc] initWithData:passwordData encoding:NSUTF8StringEncoding]);
+}
+
+void printIdentity(NSDictionary *identityItem) {
+	printToStdOut(@"no identities\n");
+}
+
+void printCertificate(NSDictionary *certificateItem) {
+	printToStdOut(@"no certificates\n");
+}
+
+void printKey(NSDictionary *keyItem) {
+	printToStdOut(@"no keys\n");
+}
+
+void printResultsForSecClass(NSArray *keychainItems, CFTypeRef kSecClassType) {
+	if (keychainItems == nil) {
+		printToStdOut(getEmptyKeychainItemString(kSecClassType));
+		return;
+	}
+
+	NSDictionary *keychainItem;
+	for (keychainItem in keychainItems) {
+		if (kSecClassType == kSecClassGenericPassword) {
+			printGenericPassword(keychainItem);
+		}	
+		else if (kSecClassType == kSecClassInternetPassword) {
+			printInternetPassword(keychainItem);
+		}
+		else if (kSecClassType == kSecClassIdentity) {
+			printIdentity(keychainItem);
+		}
+		else if (kSecClassType == kSecClassCertificate) {
+			printCertificate(keychainItem);
+		}
+		else if (kSecClassType == kSecClassKey) {
+			printKey(keychainItem);
+		}
+	}
+	return;
+}
+
+
+
+int main(int argc, char **argv) 
 {
 	id pool=[NSAutoreleasePool new];
-	NSProcessInfo *processInfo = [NSProcessInfo processInfo];
-    NSArray *arguments = [processInfo arguments];
-    BOOL dumpKeychainDatabase = NO;
-    if ( [arguments count] > 2 || ( [arguments count] == 2 && [[arguments lastObject] isEqualToString:@"-e"] == NO ) )
-    {
-        printToStdOut(@"Usage: keychain_dumper [-e] %@ %d %d",  [arguments lastObject],[[arguments lastObject] isEqualToString:@"-e"], [arguments count] );
-    }
-    else if ( [arguments count] == 2 && [[arguments lastObject] isEqualToString:@"-e"] )
-    {
+
+	NSMutableArray *arguments = [[NSMutableArray alloc] init];
+	processCommandLineOptions(argc, argv, arguments);
+	NSArray *passwordItems;	
+	if ([arguments indexOfObject:@"dumpEntitlements"] != NSNotFound) {
 		dumpKeychainEntitlements();
-    }
-    else
-    {
-		dumpKeychainItems();
-    }
+		exit(EXIT_SUCCESS);
+	}
+	
+	NSArray *keychainItems = nil;
+	for (id *kSecClassType in (NSArray *) arguments) {
+		keychainItems = getKeychainObjectsForSecClass((CFTypeRef)kSecClassType);
+		printResultsForSecClass(keychainItems, (CFTypeRef)kSecClassType);
+		[keychainItems release];	
+	}
     
+    [arguments release];
 	[pool drain];
 }
 
