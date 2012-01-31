@@ -32,8 +32,7 @@
 #import <Security/Security.h>
 #import "sqlite3.h"
 
-void printToStdOut(NSString *format, ...) 
-{
+void printToStdOut(NSString *format, ...) {
     va_list args;
     va_start(args, format);
     NSString *formattedString = [[NSString alloc] initWithFormat: format arguments: args];
@@ -42,8 +41,17 @@ void printToStdOut(NSString *format, ...)
 	[formattedString release];
 }
 
-void dumpKeychainEntitlements()
-{
+void printUsage() {
+	printToStdOut(@"Usage: keychain_dumper [-e]|[-gnick]\n");
+	printToStdOut(@"-e: Dump Entitlements\n");
+	printToStdOut(@"-g: Dump Generic Passwords\n");
+	printToStdOut(@"-n: Dump Internet Passwords\n");
+	printToStdOut(@"-i: Dump Identities\n");
+	printToStdOut(@"-c: Dump Certificates\n");
+	printToStdOut(@"-k: Dump Keys\n");
+}
+
+void dumpKeychainEntitlements() {
     NSString *databasePath = @"/var/Keychains/keychain-2.db";
     const char *dbpath = [databasePath UTF8String];
     sqlite3 *keychainDB;
@@ -118,8 +126,11 @@ void processCommandLineOptions(int argc, char **argv, NSMutableArray *arguments)
 			case 'k':
 				[arguments addObject:(id)kSecClassKey];
 				break;
+			case 'h':
+				printUsage();
+				break;
 			case '?':
-			    printToStdOut(@"Usage: keychain_dumper [-e]|[-gnick]");
+			    printUsage();
 			 	exit(EXIT_FAILURE);
 			default:
 				continue;
@@ -189,16 +200,63 @@ void printInternetPassword(NSDictionary *passwordItem) {
 	printToStdOut(@"Keychain Data: %@\n\n", [[NSString alloc] initWithData:passwordData encoding:NSUTF8StringEncoding]);
 }
 
-void printIdentity(NSDictionary *identityItem) {
-	printToStdOut(@"no identities\n");
-}
 
 void printCertificate(NSDictionary *certificateItem) {
-	printToStdOut(@"no certificates\n");
+	SecCertificateRef certificate = (SecCertificateRef)[certificateItem objectForKey:(id)kSecValueRef];
+
+	CFStringRef summary;
+	summary = SecCertificateCopySubjectSummary(certificate);
+	printToStdOut(@"Summary: %@\n", (NSString *)summary);
+	CFRelease(summary);
+	printToStdOut(@"Entitlement Group: %@\n", [certificateItem objectForKey:(id)kSecAttrAccessGroup]);
+	printToStdOut(@"Label: %@\n", [certificateItem objectForKey:(id)kSecAttrLabel]);
+	printToStdOut(@"Serial Number: %@\n", [certificateItem objectForKey:(id)kSecAttrSerialNumber]);
+	printToStdOut(@"Subject Key ID: %@\n", [certificateItem objectForKey:(id)kSecAttrSubjectKeyID]);
+	printToStdOut(@"Subject Key Hash: %@\n\n", [certificateItem objectForKey:(id)kSecAttrPublicKeyHash]);
+	
 }
 
 void printKey(NSDictionary *keyItem) {
-	printToStdOut(@"no keys\n");
+	NSString *keyClass = @"Unknown";
+	CFTypeRef _keyClass = [keyItem objectForKey:(id)kSecAttrKeyClass];
+
+	if ([[(id)_keyClass description] isEqual:(id)kSecAttrKeyClassPublic]) {
+		keyClass = @"Public";
+	}
+	else if ([[(id)_keyClass description] isEqual:(id)kSecAttrKeyClassPrivate]) {
+		keyClass = @"Private";
+	}
+	else if ([[(id)_keyClass description] isEqual:(id)kSecAttrKeyClassSymmetric]) {
+		keyClass = @"Symmetric";
+	}
+
+	printToStdOut(@"Entitlement Group: %@\n", [keyItem objectForKey:(id)kSecAttrAccessGroup]);
+	printToStdOut(@"Label: %@\n", [keyItem objectForKey:(id)kSecAttrLabel]);
+	printToStdOut(@"Application Label: %@\n", [keyItem objectForKey:(id)kSecAttrApplicationLabel]);
+	printToStdOut(@"Key Class: %@\n", keyClass);
+	printToStdOut(@"Permanent Key: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrIsPermanent]) == true ? @"True" : @"False");
+	printToStdOut(@"Key Size: %@\n", [keyItem objectForKey:(id)kSecAttrKeySizeInBits]);
+	printToStdOut(@"Effective Key Size: %@\n", [keyItem objectForKey:(id)kSecAttrEffectiveKeySize]);
+	printToStdOut(@"For Encryption: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanEncrypt]) == true ? @"True" : @"False");
+	printToStdOut(@"For Decryption: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanDecrypt]) == true ? @"True" : @"False");
+	printToStdOut(@"For Key Derivation: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanDerive]) == true ? @"True" : @"False");
+	printToStdOut(@"For Signatures: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanSign]) == true ? @"True" : @"False");
+	printToStdOut(@"For Signature Verification: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanVerify]) == true ? @"True" : @"False");
+	printToStdOut(@"For Key Wrapping: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanWrap]) == true ? @"True" : @"False");
+	printToStdOut(@"For Key Unwrapping: %@\n\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanUnwrap]) == true ? @"True" : @"False");
+
+}
+
+void printIdentity(NSDictionary *identityItem) {
+	SecIdentityRef identity = (SecIdentityRef)[identityItem objectForKey:(id)kSecValueRef];
+	SecCertificateRef certificate;
+
+	SecIdentityCopyCertificate(identity, &certificate);
+	NSMutableDictionary *identityItemWithCertificate = [identityItem mutableCopy];
+	[identityItemWithCertificate setObject:(id)certificate forKey:(id)kSecValueRef];
+	printCertificate(identityItemWithCertificate);
+	printKey(identityItemWithCertificate);
+	[identityItemWithCertificate release];
 }
 
 void printResultsForSecClass(NSArray *keychainItems, CFTypeRef kSecClassType) {
@@ -227,8 +285,6 @@ void printResultsForSecClass(NSArray *keychainItems, CFTypeRef kSecClassType) {
 	}
 	return;
 }
-
-
 
 int main(int argc, char **argv) 
 {
