@@ -14,7 +14,7 @@ If you are using the binary from Git you can attempt to dump all of the accessib
 
 Some keychain entries are available regardless of whether the iOS is locked or not, while other entries will only be accessible if the iOS device is unlocked (i.e. a user has entered their pin).  If no Keychain entries are displayed, or if you don't want to trust the provided binary, you may need to rerun the tool after building the application from source.  Please see the Build section below for details on how to build and sign the application.  
 
-By default keychain_dumper only dump "Generic" and "Internet" passwords.  This is generally what you are interested in, as most application passwords are stored as "Generic" or "Internet" passwords.  However, you can also pass optional flags to dump additional information from the Keychain.  If you run keychain_dumper with the `-h` option you will get the following usage string:
+By default keychain_dumper only dumps "Generic" and "Internet" passwords.  This is generally what you are interested in, as most application passwords are stored as "Generic" or "Internet" passwords.  However, you can also pass optional flags to dump additional information from the Keychain.  If you run keychain_dumper with the `-h` option you will get the following usage string:
 
 	Usage: keychain_dumper [-e]|[-gnick]
 	<no flags>: Dump Password Keychain Items (Generic Password, Internet Passwords)
