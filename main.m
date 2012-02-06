@@ -42,7 +42,9 @@ void printToStdOut(NSString *format, ...) {
 }
 
 void printUsage() {
-	printToStdOut(@"Usage: keychain_dumper [-e]|[-gnick]\n");
+	printToStdOut(@"Usage: keychain_dumper [-e]|[-h]|[-agnick]\n");
+	printToStdOut(@"<no flags>: Dump Password Keychain Items (Generic Password, Internet Passwords)\n");
+	printToStdOut(@"-a: Dump All Keychain Items (Generic Passwords, Internet Passwords, Identities, Certificates, and Keys)\n");
 	printToStdOut(@"-e: Dump Entitlements\n");
 	printToStdOut(@"-g: Dump Generic Passwords\n");
 	printToStdOut(@"-n: Dump Internet Passwords\n");
@@ -95,22 +97,27 @@ void dumpKeychainEntitlements() {
 }
 
 
-void processCommandLineOptions(int argc, char **argv, NSMutableArray *arguments) {
+NSMutableArray *getCommandLineOptions(int argc, char **argv) {
+	NSMutableArray *arguments = [[NSMutableArray alloc] init];
 	int argument;
 	if (argc == 1) {
 		[arguments addObject:(id)kSecClassGenericPassword];
 		[arguments addObject:(id)kSecClassInternetPassword];
-		[arguments addObject:(id)kSecClassIdentity];
-		[arguments addObject:(id)kSecClassCertificate];
-		[arguments addObject:(id)kSecClassKey];
-		return;
+		return [arguments autorelease];
 	}
-	while ((argument = getopt (argc, argv, "egnick")) != -1) {
+	while ((argument = getopt (argc, argv, "aegnickh")) != -1) {
 		switch (argument) {
+			case 'a':
+				[arguments addObject:(id)kSecClassGenericPassword];
+				[arguments addObject:(id)kSecClassInternetPassword];
+				[arguments addObject:(id)kSecClassIdentity];
+				[arguments addObject:(id)kSecClassCertificate];
+				[arguments addObject:(id)kSecClassKey];
+				return [arguments autorelease];
 			case 'e':
 				// if they want to dump entitlements we will assume they don't want to dump anything else
 				[arguments addObject:@"dumpEntitlements"];
-				return;
+				return [arguments autorelease];
 			case 'g':
 				[arguments addObject:(id)kSecClassGenericPassword];
 				break;
@@ -137,7 +144,7 @@ void processCommandLineOptions(int argc, char **argv, NSMutableArray *arguments)
 		}
 	}
 
-	return;
+	return [arguments autorelease];
 
 }
 
@@ -182,6 +189,8 @@ NSString * getEmptyKeychainItemString(CFTypeRef kSecClassType) {
 }
 
 void printGenericPassword(NSDictionary *passwordItem) {
+	printToStdOut(@"Generic Password\n");
+	printToStdOut(@"----------------\n");
 	printToStdOut(@"Service: %@\n", [passwordItem objectForKey:(id)kSecAttrService]);
 	printToStdOut(@"Account: %@\n", [passwordItem objectForKey:(id)kSecAttrAccount]);
 	printToStdOut(@"Entitlement Group: %@\n", [passwordItem objectForKey:(id)kSecAttrAccessGroup]);
@@ -192,6 +201,8 @@ void printGenericPassword(NSDictionary *passwordItem) {
 }
 
 void printInternetPassword(NSDictionary *passwordItem) {
+	printToStdOut(@"Internet Password\n");
+	printToStdOut(@"-----------------\n");
 	printToStdOut(@"Server: %@\n", [passwordItem objectForKey:(id)kSecAttrServer]);
 	printToStdOut(@"Account: %@\n", [passwordItem objectForKey:(id)kSecAttrAccount]);
 	printToStdOut(@"Entitlement Group: %@\n", [passwordItem objectForKey:(id)kSecAttrAccessGroup]);
@@ -206,6 +217,8 @@ void printCertificate(NSDictionary *certificateItem) {
 
 	CFStringRef summary;
 	summary = SecCertificateCopySubjectSummary(certificate);
+	printToStdOut(@"Certificate\n");
+	printToStdOut(@"-----------\n");
 	printToStdOut(@"Summary: %@\n", (NSString *)summary);
 	CFRelease(summary);
 	printToStdOut(@"Entitlement Group: %@\n", [certificateItem objectForKey:(id)kSecAttrAccessGroup]);
@@ -230,6 +243,8 @@ void printKey(NSDictionary *keyItem) {
 		keyClass = @"Symmetric";
 	}
 
+	printToStdOut(@"Key\n");
+	printToStdOut(@"---\n");
 	printToStdOut(@"Entitlement Group: %@\n", [keyItem objectForKey:(id)kSecAttrAccessGroup]);
 	printToStdOut(@"Label: %@\n", [keyItem objectForKey:(id)kSecAttrLabel]);
 	printToStdOut(@"Application Label: %@\n", [keyItem objectForKey:(id)kSecAttrApplicationLabel]);
@@ -254,6 +269,8 @@ void printIdentity(NSDictionary *identityItem) {
 	SecIdentityCopyCertificate(identity, &certificate);
 	NSMutableDictionary *identityItemWithCertificate = [identityItem mutableCopy];
 	[identityItemWithCertificate setObject:(id)certificate forKey:(id)kSecValueRef];
+	printToStdOut(@"Identity\n");
+	printToStdOut(@"--------\n");
 	printCertificate(identityItemWithCertificate);
 	printKey(identityItemWithCertificate);
 	[identityItemWithCertificate release];
@@ -289,9 +306,8 @@ void printResultsForSecClass(NSArray *keychainItems, CFTypeRef kSecClassType) {
 int main(int argc, char **argv) 
 {
 	id pool=[NSAutoreleasePool new];
-
-	NSMutableArray *arguments = [[NSMutableArray alloc] init];
-	processCommandLineOptions(argc, argv, arguments);
+	NSArray* arguments;
+	arguments = getCommandLineOptions(argc, argv);
 	NSArray *passwordItems;	
 	if ([arguments indexOfObject:@"dumpEntitlements"] != NSNotFound) {
 		dumpKeychainEntitlements();
@@ -305,7 +321,6 @@ int main(int argc, char **argv)
 		[keychainItems release];	
 	}
     
-    [arguments release];
 	[pool drain];
 }
 
