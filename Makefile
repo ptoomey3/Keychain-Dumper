@@ -30,10 +30,14 @@ LDFLAGS	=\
 	-lsqlite3\
 	-bind_at_load
 
-GCC_ARM = $(GCC_BIN) -Os -Wimplicit -isysroot $(SYSROOT) $(ARCH_FLAGS)
+GCC_ARM = $(GCC_BIN) -Os -Wimplicit -isysroot $(SYSROOT)
+#$(ARCH_FLAGS)
 
 default: main.o 
 	$(GCC_ARM) $(LDFLAGS) main.o -o keychain_dumper
+
+sign:
+	ldid -Sentitlements.xml keychain_dumper
 
 main.o: main.m
 	$(GCC_ARM) -c main.m
