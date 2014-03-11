@@ -15,6 +15,7 @@ SYSROOT = $(ROOT)/sdk
 
 BIN=$(TOOLCHAIN_DIR)/usr/bin
 GCC_BIN = $(BIN)/gcc
+COMPILE_OS=$(shell uname -m | sed 's/.*iphone.*/iphone/ig')
 
 
 ARCH_FLAGS=-arch armv6
@@ -30,10 +31,17 @@ LDFLAGS	=\
 	-lsqlite3\
 	-bind_at_load
 
-GCC_ARM = $(GCC_BIN) -Os -Wimplicit -isysroot $(SYSROOT) $(ARCH_FLAGS)
+ifeq ($(COMPILE_OS),iphone)
+ GCC_ARM = $(GCC_BIN) -Os -Wimplicit -isysroot $(SYSROOT)
+else
+ GCC_ARM = $(GCC_BIN) -Os -Wimplicit -isysroot $(SYSROOT) $(ARCH_FLAGS)
+endif
 
 default: main.o 
 	$(GCC_ARM) $(LDFLAGS) main.o -o keychain_dumper
+
+sign:
+	$(BIN)/ldid -Sentitlements.xml keychain_dumper
 
 main.o: main.m
 	$(GCC_ARM) -c main.m
