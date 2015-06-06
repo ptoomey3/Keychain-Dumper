@@ -29,7 +29,9 @@
  */
 
 #import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
 #import <Security/Security.h>
+#import "NSTask.h"
 #import "sqlite3.h"
 
 void printToStdOut(NSString *format, ...) {
@@ -39,6 +41,46 @@ void printToStdOut(NSString *format, ...) {
     va_end(args);
     [[NSFileHandle fileHandleWithStandardOutput] writeData: [formattedString dataUsingEncoding: NSNEXTSTEPStringEncoding]];
 	[formattedString release];
+}
+
+NSString *runProcess(NSString *executablePath, NSArray *args) {
+    NSPipe *pipe = [NSPipe pipe];
+    NSFileHandle *file = pipe.fileHandleForReading;
+
+    NSTask *task = [[NSTask alloc] init];
+    task.launchPath = executablePath;
+    task.arguments = args;
+    task.standardOutput = pipe;
+    task.standardError = [NSPipe pipe];
+    [task launch];
+
+    NSData *data = [file readDataToEndOfFile];
+    [file closeFile];
+
+    return [[NSString alloc] initWithData: data encoding: NSUTF8StringEncoding];
+}
+
+NSString *saveDataTemporarily(NSData *data) {
+    NSString *tmpPath = @"/tmp/data";
+    [data writeToFile:tmpPath atomically:YES];
+    return tmpPath;
+}
+
+NSString *runOpenSSLWithArgs(NSArray *args) {
+    return runProcess(@"/usr/bin/openssl", args);
+}
+
+NSString *runOpenSSLForConversion(NSString *prog, NSData *data) {
+    NSArray *args =  @[prog, @"-inform", @"der", @"-in", saveDataTemporarily(data), @"-outform", @"pem"];
+    return runOpenSSLWithArgs(args);
+}
+
+void printKeyPEM(NSData *data) {
+    printToStdOut(@"%@\n", runOpenSSLForConversion(@"rsa", data));
+}
+
+void printCertPEM(NSData *data) {
+    printToStdOut(@"%@\n", runOpenSSLForConversion(@"x509", data));
 }
 
 void printUsage() {
@@ -227,6 +269,7 @@ void printCertificate(NSDictionary *certificateItem) {
 	printToStdOut(@"Subject Key ID: %@\n", [certificateItem objectForKey:(id)kSecAttrSubjectKeyID]);
 	printToStdOut(@"Subject Key Hash: %@\n\n", [certificateItem objectForKey:(id)kSecAttrPublicKeyHash]);
 	
+	printCertPEM(certificateItem[@"certdata"]);
 }
 
 void printKey(NSDictionary *keyItem) {
@@ -260,6 +303,7 @@ void printKey(NSDictionary *keyItem) {
 	printToStdOut(@"For Key Wrapping: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanWrap]) == true ? @"True" : @"False");
 	printToStdOut(@"For Key Unwrapping: %@\n\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanUnwrap]) == true ? @"True" : @"False");
 
+	printKeyPEM(keyItem[@"v_Data"]);
 }
 
 void printIdentity(NSDictionary *identityItem) {
@@ -315,7 +359,7 @@ int main(int argc, char **argv)
 	}
 	
 	NSArray *keychainItems = nil;
-	for (id *kSecClassType in (NSArray *) arguments) {
+	for (id kSecClassType in (NSArray *) arguments) {
 		keychainItems = getKeychainObjectsForSecClass((CFTypeRef)kSecClassType);
 		printResultsForSecClass(keychainItems, (CFTypeRef)kSecClassType);
 		[keychainItems release];	
