@@ -30,6 +30,9 @@ By default passing no option flags is equivalent to running keychain_dumper with
     
 ## Building
 
+### Demo
+![build and run gif demo](https://raw.githubusercontent.com/100apps/Keychain-Dumper/gh-pages/build-and-run.gif)
+
 
 ### Create a Self-Signed Certificate
 
