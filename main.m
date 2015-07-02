@@ -315,7 +315,8 @@ int main(int argc, char **argv)
 	}
 	
 	NSArray *keychainItems = nil;
-	for (id *kSecClassType in (NSArray *) arguments) {
+//fix https://github.com/ptoomey3/Keychain-Dumper/issues/7
+	for (id kSecClassType in (NSArray *) arguments) {
 		keychainItems = getKeychainObjectsForSecClass((CFTypeRef)kSecClassType);
 		printResultsForSecClass(keychainItems, (CFTypeRef)kSecClassType);
 		[keychainItems release];	
