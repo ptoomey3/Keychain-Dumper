@@ -31,10 +31,10 @@ By default passing no option flags is equivalent to running keychain_dumper with
 ## Building
 
 ### Demo
-![build and run gif demo](https://raw.githubusercontent.com/100apps/Keychain-Dumper/gh-pages/build-and-run.gif)
-
 
 ### Create a Self-Signed Certificate
+
+![create-certificate.gif](create-certificate.gif)
 
 Open up the Keychain Access app located in /Applications/Utilties/Keychain Access
 
@@ -44,19 +44,7 @@ Enter a name for the certificate, and make note of this name, as you will need i
 
 ### Build It
 
-In order to build Keychain Dumper you must first create two symbolic links to the appropriate iOS SDK directories. At the time the tool was developed the iOS 5.0 SDK was current and you may need to update the target directories based on the current SDK that is installed.  
-
-	ln -s /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk/ sdk
-	ln -s /Developer/Platforms/iPhoneOS.platform/Developer toolchain
-
-Once you have created the symbolic links your directory structure should look similar to:
-
-	-rwxr-xr-x  1 anonymous  staff  1184 Jan 20 08:44 Makefile
-	-rw-r--r--  1 anonymous  staff  2504 Jan 24 13:31 README.md
-	-rw-r--r--  1 anonymous  staff   269 Jan 24 11:27 entitlements.xml
-	-rw-r--r--  1 anonymous  staff  8525 Jan 18 14:49 main.m
-	lrwxr-xr-x  1 anonymous  staff    70 Jan 18 14:50 sdk -> /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk/
-	lrwxr-xr-x  1 anonymous  staff    48 Jan 18 14:50 toolchain -> /Developer/Platforms/iPhoneOS.platform/Developer
+![build-and-run.gif](build-and-run.gif)
 
 You should now be able to compile the project using the included makefile.
 
@@ -76,6 +64,11 @@ You should now be able to follow the directions specified in the Usage section a
 	./keychain_dumper -e > /var/tmp/entitlements.xml
 
 The resulting file can be used in place of the included entitlements.xml file.  
+
+*An Alternative Way*
+
+	CER="dumper" make codesign
+	#dumper is name for the certificate you just created.
 
 ## Contact & Help
 
