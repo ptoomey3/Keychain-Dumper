@@ -315,7 +315,7 @@ int main(int argc, char **argv)
 	}
 	
 	NSArray *keychainItems = nil;
-	for (id *kSecClassType in (NSArray *) arguments) {
+	for (id kSecClassType in (NSArray *) arguments) {
 		keychainItems = getKeychainObjectsForSecClass((CFTypeRef)kSecClassType);
 		printResultsForSecClass(keychainItems, (CFTypeRef)kSecClassType);
 		[keychainItems release];	
