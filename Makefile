@@ -27,7 +27,7 @@ clean:
 	rm -f keychain_dumper *.o 
 
 list:
-	security find-identity -pcodesigning -v
+	security find-identity -pcodesigning 
 	@printf '\nTo codesign, please run: \n\tCER="<one of Certificate names list above>" make codesign\n' 
 
 codesign:
