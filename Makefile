@@ -31,5 +31,4 @@ list:
 	@printf '\nTo codesign, please run: \n\tCER="<one of Certificate names list above>" make codesign\n' 
 
 codesign:
-	@echo "Certificates found:"
-	@codesign -fs "$(CER)" --entitlements entitlements.xml keychain_dumper
+	codesign -fs "$(CER)" --entitlements entitlements.xml keychain_dumper
