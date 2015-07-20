@@ -40,7 +40,7 @@ Enter a name for the certificate, and make note of it, as you will need it later
 
 ### Build It
 
-You should now be able to compile the project using the included makefile.
+You should be able to compile the project using the included makefile.
 
 	make
 
@@ -55,7 +55,6 @@ First we need to find the certificate to use for signing.
 Find the 40 character hex string corresponding to the certificate you generated above. You can then sign `keychain_dumper`.
 
   CER=<40 character hex string for certificate> make codesign
-
 
 You should now be able to follow the directions specified in the Usage section above.  If you don't want to use the wildcard entitlment file that is provided, you can also sign specific entitlements into the binary.  Using the unsigned Keychain Dumper you can get a list of entitelments that exist on your specific iOS device by using the `-e` flag.  For example, you can run Keychain Dumper as follows:
 
