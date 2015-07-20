@@ -24,11 +24,11 @@ main.o: main.m
 	$(GCC_ARM) -c main.m
 
 clean:
-	rm -f keychain_dumper *.o 
+	rm -f keychain_dumper *.o
 
 list:
-	security find-identity -pcodesigning 
-	@printf '\nTo codesign, please run: \n\tCER="<one of Certificate names list above>" make codesign\n' 
+	security find-identity -pcodesigning
+	@printf '\nTo codesign, please run: \n\tCER="<40 character hex string for certificate>" make codesign\n'
 
 codesign:
 	codesign -fs "$(CER)" --entitlements entitlements.xml keychain_dumper
