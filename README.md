@@ -36,8 +36,7 @@ Open up the Keychain Access app located in /Applications/Utilties/Keychain Acces
 
 From the application menu open Keychain Access -> Certificate Assistant -> Create a Certificate
 
-
-Enter a name for the certificate, and make note of this name, as you will need it later when you sign Keychain Dumper.  Make sure the Identity Type is “Self Signed Root” and the Certificate Type is “Code Signing”.  You don’t need to check the “Let me override defaults” unless you want to change other properties on the certificate (name, email, etc).
+Enter a name for the certificate, and make note of it, as you will need it later when you sign `keychain_dumper`.  Make sure the Identity Type is “Self Signed Root” and the Certificate Type is “Code Signing”.  You don’t need to check the “Let me override defaults” unless you want to change other properties on the certificate (name, email, etc).
 
 ### Build It
 
@@ -46,7 +45,6 @@ You should now be able to compile the project using the included makefile.
 	make
 
 If all goes well you should have a binary `keychain_dumper` placed in the same directory as all of the other project files.
-
 
 ### Sign It
 
