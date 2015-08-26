@@ -1,5 +1,6 @@
 GCC_BIN=`xcrun --sdk iphoneos --find gcc`
 SDK=`xcrun --sdk iphoneos --show-sdk-path`
+OSXSDK=`xcrun --sdk macosx --show-sdk-path`
 #support iPhone 3GS and above, delete armv6 to avoid SDK error
 ARCH_FLAGS=-arch armv7 -arch armv7s -arch arm64
 
@@ -21,10 +22,11 @@ default: main.o list
 	@$(GCC_ARM) $(LDFLAGS) main.o -o keychain_dumper
 
 main.o: main.m
+	ln -s $(OSXSDK)/System/Library/Frameworks/Foundation.framework/Versions/C/Headers/NSTask.h .
 	$(GCC_ARM) -c main.m
 
 clean:
-	rm -f keychain_dumper *.o
+	rm -f keychain_dumper *.o NSTask.h
 
 list:
 	security find-identity -pcodesigning
