@@ -8,6 +8,8 @@ As an aside, the following directions assume the target device has already been 
 
 Upload keychain_dumper to a directory of your choice on the target device (I have used /tmp during testing).  Also, once uploaded, be sure to validate that keychain_dumper is executable (chmod +x ./keychain_dumper if it isn't) and validate that /private/var/Keychains/keychain-2.db is world readable (chmod +r /private/var/Keychains/keychain-2.db if it isn't).
 
+Note: iOS 11 devices using Electra (or other jailbreaks) may still require a trick to bypass the native sandbox. Compile the binary with the included _entitlements.xml_, sign it with the developer account certificate/priv_key and copy the binary to _/bin_ or _/sbin_ (which already allows execution).
+
 If you are using the binary from Git you can attempt to dump all of the accessible password Keychain entries by simply running the tool with now flags
 
     ./keychain_dumper
