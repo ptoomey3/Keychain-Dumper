@@ -1,5 +1,7 @@
 # Keychain Dumper
 
+Added feature to display protection classes.
+
 ## Usage
 
 All that should be needed to use keychain_dumper is the binary that is checked in to the Keychain-Dumper Git repository.  This binary has been signed with a self-signed certificate with a "wildcard" entitlement that should grant keychain_dumper access to all Keychain items that would have been granted had the tool been signed with each individual entitlement.  If you either don't trust this binary or are having trouble dumping Keychain items using the below steps, you may can build the tool from source and manually sign the appropriate entitlments into your build of the keychain_dumper binary.
