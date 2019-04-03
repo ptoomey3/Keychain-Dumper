@@ -1,4 +1,4 @@
 #!/bin/bash
-rm /usr/bin/keychaindumper++
-ldid -Sentitlements.xml keychaindumper++
-mv keychaindumper++ /usr/bin
+rm /usr/bin/keychain_dumper
+ldid -Sentitlements.xml keychain_dumper
+mv keychain_dumper /usr/bin
