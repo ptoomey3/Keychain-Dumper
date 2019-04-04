@@ -83,7 +83,16 @@ NSString *saveDataTemporarily(NSData *data)
 
 NSString *runOpenSSLWithArgs(NSArray *args)
 {
-    return runProcess(@"/usr/bin/openssl", args);
+	// Added check if openssl is installed, error message shown if not present.
+	NSFileManager *fileManager = [NSFileManager defaultManager];
+	NSString *pathForFile = @"/usr/bin/openssl";
+	if ([fileManager fileExistsAtPath:pathForFile]){
+		return runProcess(@"/usr/bin/openssl", args);
+	}
+    else {
+    	printToStdOut(@"%s[ERROR] Cannot dump certificates, please install \"openssl\" with Cydia.\n%s",KRED, KWHT);
+    	exit(0);
+    }
 }
 
 NSString *runOpenSSLForConversion(NSString *prog, NSData *data)
