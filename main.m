@@ -33,7 +33,6 @@
 #import <Security/Security.h>
 #import "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/Foundation.framework/Versions/C/Headers/NSTask.h"
 #import "sqlite3.h"
-#import <OpenSSL/openssl.h>
 #include "stdio.h"
 
 #define KNRM  "\x1B[0m"
