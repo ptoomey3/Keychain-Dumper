@@ -84,7 +84,6 @@ NSString *saveDataTemporarily(NSData *data)
 
 NSString *runOpenSSLWithArgs(NSArray *args)
 {
-	// Added check if openssl is installed, error message shown if not present.
 	NSFileManager *fileManager = [NSFileManager defaultManager];
 	NSString *pathForFile = @"/usr/bin/openssl";
 	if ([fileManager fileExistsAtPath:pathForFile])
@@ -127,7 +126,6 @@ void printUsage()
 	printToStdOut(@"-i: Dump Identities\n");
 	printToStdOut(@"-c: Dump Certificates\n");
 	printToStdOut(@"-k: Dump Keys\n");
-	// Added additional command line parameter -s
 	printToStdOut(@"-s: Dump Selected Entitlement Group\n");
 }
 
@@ -145,7 +143,6 @@ void dumpKeychainEntitlements()
                                        "\t\t<array>\n"];
     if (sqlite3_open(dbpath, &keychainDB) == SQLITE_OK)
     {
-    	// Extended the SQL query to also contain agrp values from cert and key tables
         const char *query_stmt = "select distinct agrp from genp union select distinct agrp from inet union select distinct agrp from cert union select distinct agrp from keys;";
 		
         if (sqlite3_prepare_v2(keychainDB, query_stmt, -1, &statement, NULL) == SQLITE_OK)
@@ -176,7 +173,6 @@ void dumpKeychainEntitlements()
 	}
 }
 
-// Function to list and select group entitlements from generic password, internet password, certificate and keys table
 NSString *listEntitlements()
 {
 	NSString *databasePath = @"/var/Keychains/keychain-2.db";
@@ -242,7 +238,6 @@ NSMutableArray *getCommandLineOptions(int argc, char **argv)
         switch(argument)
         {	
         	case 's':
-        		// Dump all keychain items of a selected entitlement group
 				SELECTEDENTITLEMENT = listEntitlements();
 				[arguments addObject:(id)kSecClassGenericPassword];
 				[arguments addObject:(id)kSecClassInternetPassword];
@@ -258,7 +253,6 @@ NSMutableArray *getCommandLineOptions(int argc, char **argv)
 				[arguments addObject:(id)kSecClassKey];
 				return [arguments autorelease];
 			case 'e':
-				// if they want to dump entitlements we will assume they don't want to dump anything else
 				[arguments addObject:@"dumpEntitlements"];
 				return [arguments autorelease];
 			case 'g':
@@ -334,8 +328,6 @@ NSString * getEmptyKeychainItemString(CFTypeRef kSecClassType)
 	}
 }
 
-// Function to convert make the accessible attribute more readable, added protection level to quickly identify weak 
-// protected keychain items.
 void printAccessibleAttribute(NSString *accessibleString)
 {
 	if ([accessibleString isEqualToString:@"dk"]) 
@@ -364,17 +356,10 @@ void printGenericPassword(NSDictionary *passwordItem)
 	printToStdOut(@"Account: %@\n", [passwordItem objectForKey:(id)kSecAttrAccount]);
 	printToStdOut(@"Entitlement Group: %@\n", [passwordItem objectForKey:(id)kSecAttrAccessGroup]);
 	printToStdOut(@"Label: %@\n", [passwordItem objectForKey:(id)kSecAttrLabel]);
-	// Added the accessible attribute printout
 	NSString* accessibleString = [passwordItem objectForKey:(id)kSecAttrAccessible];
 	printAccessibleAttribute(accessibleString);
-	// Added the created/mmodified attribute printout, not finaly implemented yet
-	//printToStdOut(@"Creation Date: %@\n", [passwordItem objectForKey:(id)kSecAttrCreationDate]); //CFDate
-	//printToStdOut(@"Modification Date: %@\n", [passwordItem objectForKey:(id)kSecAttrModificationDate]); //CFDate
-	// Added the description attribute printout
 	printToStdOut(@"Description: %@\n", [passwordItem objectForKey:(id)kSecAttrDescription]); 
-	// Added the comment attribute printout
 	printToStdOut(@"Comment: %@\n", [passwordItem objectForKey:(id)kSecAttrComment]); 
-	// Added the synchronizable attribute printout
 	printToStdOut(@"Synchronizable: %@\n", [passwordItem objectForKey:(id)kSecAttrSynchronizable]); 
 	printToStdOut(@"Generic Field: %@\n", [[passwordItem objectForKey:(id)kSecAttrGeneric] description]); 
 	NSData* passwordData = [passwordItem objectForKey:(id)kSecValueData];
@@ -389,7 +374,6 @@ void printInternetPassword(NSDictionary *passwordItem)
 	printToStdOut(@"Account: %@\n", [passwordItem objectForKey:(id)kSecAttrAccount]);
 	printToStdOut(@"Entitlement Group: %@\n", [passwordItem objectForKey:(id)kSecAttrAccessGroup]);
 	printToStdOut(@"Label: %@\n", [passwordItem objectForKey:(id)kSecAttrLabel]);
-	// Added the accessible attribute printout
 	NSString* accessibleString = [passwordItem objectForKey:(id)kSecAttrAccessible];
 	printAccessibleAttribute(accessibleString);
 	NSData* passwordData = [passwordItem objectForKey:(id)kSecValueData];
@@ -407,7 +391,6 @@ void printCertificate(NSDictionary *certificateItem)
 	CFRelease(summary);
 	printToStdOut(@"Entitlement Group: %@\n", [certificateItem objectForKey:(id)kSecAttrAccessGroup]);
 	printToStdOut(@"Label: %@\n", [certificateItem objectForKey:(id)kSecAttrLabel]);
-	// Added the accessible attribute printout
 	NSString* accessibleString = [certificateItem objectForKey:(id)kSecAttrAccessible];
 	printAccessibleAttribute(accessibleString);
 	printToStdOut(@"Serial Number: %@\n", [certificateItem objectForKey:(id)kSecAttrSerialNumber]);
@@ -455,8 +438,6 @@ void printKey(NSDictionary *keyItem)
 	 	printToStdOut(@"For Signatures: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanSign]) == true ? @"True" : @"False");
 	 	printToStdOut(@"For Signature Verification: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanVerify]) == true ? @"True" : @"False");
 	 	printToStdOut(@"For Key Wrapping: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanWrap]) == true ? @"True" : @"False");
-	 	// Disabled the kSecAttrCanUnwrap because it crashed the application in certain circumstances.
-	 	//printToStdOut(@"For Key Unwrapping: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanUnwrap]) == true ? @"True" : @"False");
 	 	printKeyPEM(keyItem[@"v_Data"]);
 	 }
 	 printToStdOut(@"\n");
@@ -488,14 +469,12 @@ void printResultsForSecClass(NSArray *keychainItems, CFTypeRef kSecClassType)
     {
 		if (kSecClassType == kSecClassGenericPassword)
         {	
-        	// Check if a valid entitlement group was selected, default to "none"
         	if ([SELECTEDENTITLEMENT isEqualToString:@"none"])
      		{
      			printGenericPassword(keychainItem);
      		}
 			else 
 			{
-				// Check if the selected entitlement group is in the keychain item, if true -> print
 				if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:SELECTEDENTITLEMENT])
 				{
 					printGenericPassword(keychainItem);
