@@ -33,6 +33,7 @@
 #import <Security/Security.h>
 #import "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/Foundation.framework/Versions/C/Headers/NSTask.h"
 #import "sqlite3.h"
+#import <OpenSSL/openssl.h>
 #include "stdio.h"
 
 #define KNRM  "\x1B[0m"
@@ -86,10 +87,12 @@ NSString *runOpenSSLWithArgs(NSArray *args)
 	// Added check if openssl is installed, error message shown if not present.
 	NSFileManager *fileManager = [NSFileManager defaultManager];
 	NSString *pathForFile = @"/usr/bin/openssl";
-	if ([fileManager fileExistsAtPath:pathForFile]){
+	if ([fileManager fileExistsAtPath:pathForFile])
+	{
 		return runProcess(@"/usr/bin/openssl", args);
 	}
-    else {
+    else 
+    {
     	printToStdOut(@"%s[ERROR] Cannot dump certificates, please install \"openssl\" with Cydia.\n%s",KRED, KWHT);
     	exit(0);
     }
@@ -110,6 +113,8 @@ void printCertPEM(NSData *data)
 {
     printToStdOut(@"%@\n", runOpenSSLForConversion(@"x509", data));
 }
+
+
 
 void printUsage()
 {
@@ -212,7 +217,8 @@ NSString *listEntitlements()
 	int userSelection;
 	printToStdOut(@"%s[ACTION] Select Entitlement Group by Number: %s", KGRN, KWHT);
 	scanf("%d", &userSelection);
-	if (userSelection > [entitlementsArray count]-1 || userSelection < 0){
+	if (userSelection > [entitlementsArray count]-1 || userSelection < 0)
+	{
 		printToStdOut(@"%s[ERROR] Invalid selection, index out of range.\n%s", KRED, KWHT);
 		exit(0);
 	}
@@ -435,12 +441,14 @@ void printKey(NSDictionary *keyItem)
 	printAccessibleAttribute(accessibleString);
 	printToStdOut(@"Application Label: %@\n", [keyItem objectForKey:(id)kSecAttrApplicationLabel]);
 	printToStdOut(@"Key Class: %@\n", keyClass);
-	if (keySize) {
+	if (keySize) 
+	{
 		printToStdOut(@"Permanent Key: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrIsPermanent]) == true ? @"True" : @"False");
 	}
 	printToStdOut(@"Key Size: %@\n", [keyItem objectForKey:(id)kSecAttrKeySizeInBits]);
 	printToStdOut(@"Effective Key Size: %@\n", [keyItem objectForKey:(id)kSecAttrEffectiveKeySize]);
-	if (keySize) {
+	if (keySize) 
+	{
 		printToStdOut(@"For Encryption: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanEncrypt]) == true ? @"True" : @"False");
 	 	printToStdOut(@"For Decryption: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanDecrypt]) == true ? @"True" : @"False");
 	 	printToStdOut(@"For Key Derivation: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanDerive]) == true ? @"True" : @"False");
