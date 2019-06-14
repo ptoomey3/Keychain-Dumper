@@ -44,7 +44,9 @@
 #define KCYN  "\x1B[36m"
 #define KWHT  "\x1B[37m"
 
-NSString *SELECTEDENTITLEMENT = @"none";
+static NSString *selectedEntitlementConstant = @"none";
+static NSString *databasePath = @"/var/Keychains/keychain-2.db";
+
 
 void printToStdOut(NSString *format, ...)
 {
@@ -130,7 +132,6 @@ void printUsage()
 
 void dumpKeychainEntitlements()
 {
-    NSString *databasePath = @"/var/Keychains/keychain-2.db";
     const char *dbpath = [databasePath UTF8String];
     sqlite3 *keychainDB;
     sqlite3_stmt *statement;
@@ -174,7 +175,6 @@ void dumpKeychainEntitlements()
 
 NSString *listEntitlements()
 {
-	NSString *databasePath = @"/var/Keychains/keychain-2.db";
 	NSMutableArray *entitlementsArray = [[NSMutableArray alloc] init];
     const char *dbpath = [databasePath UTF8String];
     sqlite3 *keychainDB;
@@ -237,7 +237,7 @@ NSMutableArray *getCommandLineOptions(int argc, char **argv)
         switch(argument)
         {	
         	case 's':
-				SELECTEDENTITLEMENT = listEntitlements();
+				selectedEntitlementConstant = listEntitlements();
 				[arguments addObject:(id)kSecClassGenericPassword];
 				[arguments addObject:(id)kSecClassInternetPassword];
 				[arguments addObject:(id)kSecClassIdentity];
@@ -465,13 +465,13 @@ void printResultsForSecClass(NSArray *keychainItems, CFTypeRef kSecClassType)
     {
 		if (kSecClassType == kSecClassGenericPassword)
         {	
-        	if ([SELECTEDENTITLEMENT isEqualToString:@"none"])
+        	if ([selectedEntitlementConstant isEqualToString:@"none"])
      		{
      			printGenericPassword(keychainItem);
      		}
 			else 
 			{
-				if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:SELECTEDENTITLEMENT])
+				if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant])
 				{
 					printGenericPassword(keychainItem);
 				}
@@ -479,13 +479,13 @@ void printResultsForSecClass(NSArray *keychainItems, CFTypeRef kSecClassType)
 		}	
 		else if (kSecClassType == kSecClassInternetPassword)
         {
-        	if ([SELECTEDENTITLEMENT isEqualToString:@"none"])
+        	if ([selectedEntitlementConstant isEqualToString:@"none"])
      		{
      			printInternetPassword(keychainItem);
      		}
 			else 
 			{
-				if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:SELECTEDENTITLEMENT])
+				if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant])
 				{
 					printInternetPassword(keychainItem);
 				}
@@ -493,13 +493,13 @@ void printResultsForSecClass(NSArray *keychainItems, CFTypeRef kSecClassType)
 		}
 		else if (kSecClassType == kSecClassIdentity)
         {
-            if ([SELECTEDENTITLEMENT isEqualToString:@"none"])
+            if ([selectedEntitlementConstant isEqualToString:@"none"])
      		{
      			printIdentity(keychainItem);
      		}
 			else 
 			{
-				if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:SELECTEDENTITLEMENT])
+				if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant])
 				{
 					printIdentity(keychainItem);
 				}
@@ -507,13 +507,13 @@ void printResultsForSecClass(NSArray *keychainItems, CFTypeRef kSecClassType)
 		}
 		else if (kSecClassType == kSecClassCertificate)
         {
-			if ([SELECTEDENTITLEMENT isEqualToString:@"none"])
+			if ([selectedEntitlementConstant isEqualToString:@"none"])
      		{
      			printCertificate(keychainItem);
      		}
 			else 
 			{
-				if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:SELECTEDENTITLEMENT])
+				if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant])
 				{
 					printCertificate(keychainItem);
 				}
@@ -521,13 +521,13 @@ void printResultsForSecClass(NSArray *keychainItems, CFTypeRef kSecClassType)
 		}
 		else if (kSecClassType == kSecClassKey)
         {
-			if ([SELECTEDENTITLEMENT isEqualToString:@"none"])
+			if ([selectedEntitlementConstant isEqualToString:@"none"])
      		{
      			printKey(keychainItem);
      		}
 			else 
 			{
-				if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:SELECTEDENTITLEMENT])
+				if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant])
 				{
 					printKey(keychainItem);
 				}
