@@ -403,6 +403,7 @@ void printKey(NSDictionary *keyItem)
     NSString *keyClass = @"Unknown";
 	CFTypeRef _keyClass = [keyItem objectForKey:(id)kSecAttrKeyClass];
 	int keySize = [[keyItem objectForKey:(id)kSecAttrKeySizeInBits] intValue];
+	int effectiveKeySize = [[keyItem objectForKey:(id)kSecAttrEffectiveKeySize] intValue];
 	if ([[(id)_keyClass description] isEqual:(id)kSecAttrKeyClassPublic])
     {
 		keyClass = @"Public";
@@ -425,7 +426,7 @@ void printKey(NSDictionary *keyItem)
 	printToStdOut(@"Key Class: %@\n", keyClass);
 	printToStdOut(@"Key Size: %@\n", [keyItem objectForKey:(id)kSecAttrKeySizeInBits]);
 	printToStdOut(@"Effective Key Size: %@\n", [keyItem objectForKey:(id)kSecAttrEffectiveKeySize]);
-	if (keySize) 
+	if (keySize == effectiveKeySize) 
 	{
 		printToStdOut(@"Permanent Key: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrIsPermanent]) == true ? @"True" : @"False");
 		printToStdOut(@"For Encryption: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanEncrypt]) == true ? @"True" : @"False");
@@ -435,6 +436,10 @@ void printKey(NSDictionary *keyItem)
 	 	printToStdOut(@"For Signature Verification: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanVerify]) == true ? @"True" : @"False");
 	 	printToStdOut(@"For Key Wrapping: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanWrap]) == true ? @"True" : @"False");
 	 	printKeyPEM(keyItem[@"v_Data"]);
+	 }
+	 else 
+	 {
+	 	printToStdOut(@"[INFO] Malformed Key Detected. Check/Cleanup KeyChain manually.\n");
 	 }
 	 printToStdOut(@"\n");
 }
