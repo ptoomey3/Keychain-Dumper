@@ -5,7 +5,6 @@ ARCH_FLAGS=-arch armv7 -arch armv7s -arch arm64
 
 LDFLAGS	=\
 	-F$(SDK)/System/Library/Frameworks/\
-	-F$(SDK)/System/Library/PrivateFrameworks/\
 	-framework UIKit\
 	-framework CoreFoundation\
 	-framework Foundation\
