@@ -104,9 +104,20 @@ NSString *runOpenSSLForConversion(NSString *prog, NSData *data)
     return runOpenSSLWithArgs(args);
 }
 
-void printKeyPEM(NSData *data)
+NSString *runOpenSSLForPublicConversion(NSString *prog, NSData *data)
+{
+    NSArray *args =  @[prog, @"-RSAPublicKey_in", @"-inform", @"der", @"-in", saveDataTemporarily(data), @"-outform", @"pem"];
+    return runOpenSSLWithArgs(args);
+}
+
+void printPrivateKeyPEM(NSData *data)
 {
     printToStdOut(@"%@\n", runOpenSSLForConversion(@"rsa", data));
+}
+
+void printPublicKeyPEM(NSData *data)
+{
+    printToStdOut(@"%@\n", runOpenSSLForPublicConversion(@"rsa", data));
 }
 
 void printCertPEM(NSData *data)
@@ -401,7 +412,9 @@ void printCertificate(NSDictionary *certificateItem)
 void printKey(NSDictionary *keyItem)
 {
     NSString *keyClass = @"Unknown";
+    //NSLog(@"%@", keyItem); //Debugging purposes
 	CFTypeRef _keyClass = [keyItem objectForKey:(id)kSecAttrKeyClass];
+	CFTypeRef _keyType = [keyItem objectForKey:(id)kSecAttrKeyType];
 	int keySize = [[keyItem objectForKey:(id)kSecAttrKeySizeInBits] intValue];
 	int effectiveKeySize = [[keyItem objectForKey:(id)kSecAttrEffectiveKeySize] intValue];
 	if ([[(id)_keyClass description] isEqual:(id)kSecAttrKeyClassPublic])
@@ -436,11 +449,24 @@ void printKey(NSDictionary *keyItem)
 	 	printToStdOut(@"For Signatures: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanSign]) == true ? @"True" : @"False");
 	 	printToStdOut(@"For Signature Verification: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanVerify]) == true ? @"True" : @"False");
 	 	printToStdOut(@"For Key Wrapping: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanWrap]) == true ? @"True" : @"False");
-	 	printKeyPEM(keyItem[@"v_Data"]);
+	 	if (([[(id)_keyType description]isEqual:(id)kSecAttrKeyTypeRSA])&&([[(id)_keyClass description] isEqual:(id)kSecAttrKeyClassPublic]))
+	 	{
+	 		printToStdOut(@"RSA public key data:\n");
+	 		printPublicKeyPEM(keyItem[@"v_Data"]);
+	 	}
+	 	else if (([[(id)_keyType description]isEqual:(id)kSecAttrKeyTypeRSA])&&([[(id)_keyClass description] isEqual:(id)kSecAttrKeyClassPrivate]))
+	 	{
+	 		printToStdOut(@"RSA private key data:\n");
+	 		printPrivateKeyPEM(keyItem[@"v_Data"]);
+	 	}
+	 	else 
+	 	{
+	 		printToStdOut(@"[INFO] Key data (EC, Symmetric, ...) output not implemented yet. Stay tuned.\n");
+	 	}
 	 }
 	 else 
 	 {
-	 	printToStdOut(@"[INFO] Malformed Key Detected. Check/Cleanup KeyChain manually.\n");
+	 	printToStdOut(@"[INFO] Malformed key data detected. Check/Cleanup KeyChain manually.\n");
 	 }
 	 printToStdOut(@"\n");
 }
