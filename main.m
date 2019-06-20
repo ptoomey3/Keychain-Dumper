@@ -423,6 +423,7 @@ void printKey(NSDictionary *keyItem)
 	NSString* accessibleString = [keyItem objectForKey:(id)kSecAttrAccessible];
 	printAccessibleAttribute(accessibleString);
 	printToStdOut(@"Application Label: %@\n", [keyItem objectForKey:(id)kSecAttrApplicationLabel]);
+	printToStdOut(@"Application Tag: %@\n", [keyItem objectForKey:(id)kSecAttrApplicationTag]);
 	printToStdOut(@"Key Class: %@\n", keyClass);
 	printToStdOut(@"Key Size: %@\n", [keyItem objectForKey:(id)kSecAttrKeySizeInBits]);
 	printToStdOut(@"Effective Key Size: %@\n", [keyItem objectForKey:(id)kSecAttrEffectiveKeySize]);
