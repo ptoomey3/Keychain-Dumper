@@ -426,7 +426,7 @@ void printKey(NSDictionary *keyItem)
 	printToStdOut(@"Key Class: %@\n", keyClass);
 	printToStdOut(@"Key Size: %@\n", [keyItem objectForKey:(id)kSecAttrKeySizeInBits]);
 	printToStdOut(@"Effective Key Size: %@\n", [keyItem objectForKey:(id)kSecAttrEffectiveKeySize]);
-	if (keySize == effectiveKeySize) 
+	if ((keySize == effectiveKeySize) && (keySize != 0))
 	{
 		printToStdOut(@"Permanent Key: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrIsPermanent]) == true ? @"True" : @"False");
 		printToStdOut(@"For Encryption: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanEncrypt]) == true ? @"True" : @"False");
