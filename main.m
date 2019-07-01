@@ -442,13 +442,16 @@ void printKey(NSDictionary *keyItem)
 	printToStdOut(@"Effective Key Size: %@\n", [keyItem objectForKey:(id)kSecAttrEffectiveKeySize]);
 	if ((keySize == effectiveKeySize) && (keySize != 0))
 	{
-		printToStdOut(@"Permanent Key: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrIsPermanent]) == true ? @"True" : @"False");
-		printToStdOut(@"For Encryption: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanEncrypt]) == true ? @"True" : @"False");
-	 	printToStdOut(@"For Decryption: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanDecrypt]) == true ? @"True" : @"False");
-	 	printToStdOut(@"For Key Derivation: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanDerive]) == true ? @"True" : @"False");
-	 	printToStdOut(@"For Signatures: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanSign]) == true ? @"True" : @"False");
-	 	printToStdOut(@"For Signature Verification: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanVerify]) == true ? @"True" : @"False");
-	 	printToStdOut(@"For Key Wrapping: %@\n", CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanWrap]) == true ? @"True" : @"False");
+        printToStdOut(@"Permanent Key: %@\n", [keyItem objectForKey:(id)kSecAttrIsPermanent]  == nil ? @"Empty" : CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrIsPermanent]) == true ? @"True" :@"False");
+        printToStdOut(@"Key Size: %@\n", [keyItem objectForKey:(id)kSecAttrKeySizeInBits]);
+        printToStdOut(@"Effective Key Size: %@\n", [keyItem objectForKey:(id)kSecAttrEffectiveKeySize]);
+        printToStdOut(@"For Encryption: %@\n", [keyItem objectForKey:(id)kSecAttrCanEncrypt] == nil ? @"Empty" : CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanEncrypt]) == true ? @"True" :@"False");
+        printToStdOut(@"For Decryption: %@\n", [keyItem objectForKey:(id)kSecAttrCanDecrypt] == nil ? @"Empty" : CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanDecrypt]) == true ? @"True" :@"False");
+        printToStdOut(@"For Key Derivation: %@\n", [keyItem objectForKey:(id)kSecAttrCanDerive] == nil ? @"Empty" : CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanDerive]) == true ? @"True" :@"False");
+        printToStdOut(@"For Signatures: %@\n", [keyItem objectForKey:(id)kSecAttrCanSign] == nil ? @"Empty" : CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanSign]) == true ? @"True" :@"False");
+        printToStdOut(@"For Signature Verification: %@\n", [keyItem objectForKey:(id)kSecAttrCanVerify] == nil ? @"Empty" : CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanVerify]) == true ? @"True" :@"False");
+        printToStdOut(@"For Key Wrapping: %@\n", [keyItem objectForKey:(id)kSecAttrCanWrap] == nil ? @"Empty" : CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanWrap]) == true ? @"True" :@"False");
+        printToStdOut(@"For Key Unwrapping: %@\n\n", [keyItem objectForKey:(id)kSecAttrCanUnwrap] == nil ? @"Empty" : CFBooleanGetValue((CFBooleanRef)[keyItem objectForKey:(id)kSecAttrCanUnwrap]) == true ? @"True" :@"False");
 	 	if (([[(id)_keyType description]isEqual:(id)kSecAttrKeyTypeRSA])&&([[(id)_keyClass description] isEqual:(id)kSecAttrKeyClassPublic]))
 	 	{
 	 		printToStdOut(@"RSA public key data:\n");
