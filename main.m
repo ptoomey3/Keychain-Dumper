@@ -373,7 +373,13 @@ void printGenericPassword(NSDictionary *passwordItem)
 	printToStdOut(@"Synchronizable: %@\n", [passwordItem objectForKey:(id)kSecAttrSynchronizable]); 
 	printToStdOut(@"Generic Field: %@\n", [[passwordItem objectForKey:(id)kSecAttrGeneric] description]); 
 	NSData* passwordData = [passwordItem objectForKey:(id)kSecValueData];
-	printToStdOut(@"Keychain Data: %@\n\n", [[NSString alloc] initWithData:passwordData encoding:NSUTF8StringEncoding]);
+	NSString *keychainData = [[NSString alloc] initWithData:passwordData encoding:NSUTF8StringEncoding];
+	if (keychainData) {
+		printToStdOut(@"Keychain Data: %@\n\n", keychainData);
+	}
+	else {
+		printToStdOut(@"Keychain Data (Base64): %@\n\n", [passwordData base64EncodedStringWithOptions:0]);
+	}
 }
 
 void printInternetPassword(NSDictionary *passwordItem)
