@@ -54,8 +54,28 @@ void printToStdOut(NSString *format, ...)
     va_start(args, format);
     NSString *formattedString = [[NSString alloc] initWithFormat: format arguments: args];
     va_end(args);
-    [[NSFileHandle fileHandleWithStandardOutput] writeData: [formattedString dataUsingEncoding: NSNEXTSTEPStringEncoding]];
+    [[NSFileHandle fileHandleWithStandardOutput] writeData: [formattedString dataUsingEncoding: NSUTF8StringEncoding]];
 	[formattedString release];
+}
+
+/// Prints a `NSData` to stdout, swapping between `utf8Format` and `hexFormat` depending on whether `data` is valid UTF-8.
+/// `utf8Format` should use `%@` for the data, while `hexFormat` should use `%s`
+void printDataToStdOut(NSString *utf8Format, NSString *hexFormat, NSData *data) {
+	NSString *utf8Str = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+	if (utf8Str) {
+		printToStdOut(utf8Format, utf8Str);
+		[utf8Str release];
+	}
+	else {
+		NSUInteger length = [data length];
+		char *hexStr = malloc(length * 2 + 1);
+		const uint8_t *ptr = [data bytes];
+		for (int i = 0; i < length; i++) {
+			sprintf(hexStr + i*2, "%02x", ptr[i]);
+		}
+		printToStdOut(hexFormat, hexStr);
+		free(hexStr);
+	}
 }
 
 NSString *runProcess(NSString *executablePath, NSArray *args)
@@ -373,13 +393,7 @@ void printGenericPassword(NSDictionary *passwordItem)
 	printToStdOut(@"Synchronizable: %@\n", [passwordItem objectForKey:(id)kSecAttrSynchronizable]); 
 	printToStdOut(@"Generic Field: %@\n", [[passwordItem objectForKey:(id)kSecAttrGeneric] description]); 
 	NSData* passwordData = [passwordItem objectForKey:(id)kSecValueData];
-	NSString *keychainData = [[NSString alloc] initWithData:passwordData encoding:NSUTF8StringEncoding];
-	if (keychainData) {
-		printToStdOut(@"Keychain Data: %@\n\n", keychainData);
-	}
-	else {
-		printToStdOut(@"Keychain Data (Base64): %@\n\n", [passwordData base64EncodedStringWithOptions:0]);
-	}
+	printDataToStdOut(@"Keychain Data: %@\n\n", @"Keychain Data (Hex): 0x%s\n\n", passwordData);
 }
 
 void printInternetPassword(NSDictionary *passwordItem)
@@ -393,7 +407,7 @@ void printInternetPassword(NSDictionary *passwordItem)
 	NSString* accessibleString = [passwordItem objectForKey:(id)kSecAttrAccessible];
 	printAccessibleAttribute(accessibleString);
 	NSData* passwordData = [passwordItem objectForKey:(id)kSecValueData];
-	printToStdOut(@"Keychain Data: %@\n\n", [[NSString alloc] initWithData:passwordData encoding:NSUTF8StringEncoding]);
+	printDataToStdOut(@"Keychain Data: %@\n\n", @"Keychain Data (Hex): 0x%s\n\n", passwordData);
 }
 
 void printCertificate(NSDictionary *certificateItem)
