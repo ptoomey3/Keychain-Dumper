@@ -58,12 +58,11 @@ void printToStdOut(NSString *format, ...)
 	[formattedString release];
 }
 
-/// Prints a `NSData` to stdout, swapping between `utf8Format` and `hexFormat` depending on whether `data` is valid UTF-8.
-/// `utf8Format` should use `%@` for the data, while `hexFormat` should use `%s`
-void printDataToStdOut(NSString *utf8Format, NSString *hexFormat, NSData *data) {
+/// Prints a `NSData` to stdout, with either the format "\(name): \(data)\n\n" if the data is valid UTF-8, or "\(name) (Hex): \(data)\n\n" if it isn't
+void printDataToStdOut(const char *name, NSData *data) {
 	NSString *utf8Str = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 	if (utf8Str) {
-		printToStdOut(utf8Format, utf8Str);
+		printToStdOut(@"%s: %@\n\n", name, utf8Str);
 		[utf8Str release];
 	}
 	else {
@@ -73,7 +72,7 @@ void printDataToStdOut(NSString *utf8Format, NSString *hexFormat, NSData *data) 
 		for (int i = 0; i < length; i++) {
 			sprintf(hexStr + i*2, "%02x", ptr[i]);
 		}
-		printToStdOut(hexFormat, hexStr);
+		printToStdOut(@"%s (Hex): 0x%s\n\n", name, hexStr);
 		free(hexStr);
 	}
 }
@@ -393,7 +392,7 @@ void printGenericPassword(NSDictionary *passwordItem)
 	printToStdOut(@"Synchronizable: %@\n", [passwordItem objectForKey:(id)kSecAttrSynchronizable]); 
 	printToStdOut(@"Generic Field: %@\n", [[passwordItem objectForKey:(id)kSecAttrGeneric] description]); 
 	NSData* passwordData = [passwordItem objectForKey:(id)kSecValueData];
-	printDataToStdOut(@"Keychain Data: %@\n\n", @"Keychain Data (Hex): 0x%s\n\n", passwordData);
+	printDataToStdOut("Keychain Data", passwordData);
 }
 
 void printInternetPassword(NSDictionary *passwordItem)
@@ -407,7 +406,7 @@ void printInternetPassword(NSDictionary *passwordItem)
 	NSString* accessibleString = [passwordItem objectForKey:(id)kSecAttrAccessible];
 	printAccessibleAttribute(accessibleString);
 	NSData* passwordData = [passwordItem objectForKey:(id)kSecValueData];
-	printDataToStdOut(@"Keychain Data: %@\n\n", @"Keychain Data (Hex): 0x%s\n\n", passwordData);
+	printDataToStdOut("Keychain Data", passwordData);
 }
 
 void printCertificate(NSDictionary *certificateItem)
