@@ -1,37 +1,37 @@
-/* 
+/*
  * Copyright (c) 2011, Neohapsis, Inc.
  * All rights reserved.
  *
  * Implementation by Patrick Toomey
  *
- * Redistribution and use in source and binary forms, with or without modification, 
- * are permitted provided that the following conditions are met: 
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
  *
- *  - Redistributions of source code must retain the above copyright notice, this list 
- *    of conditions and the following disclaimer. 
- *  - Redistributions in binary form must reproduce the above copyright notice, this 
- *    list of conditions and the following disclaimer in the documentation and/or 
- *    other materials provided with the distribution. 
- *  - Neither the name of Neohapsis nor the names of its contributors may be used to 
- *    endorse or promote products derived from this software without specific prior 
- *    written permission. 
+ *  - Redistributions of source code must retain the above copyright notice, this list
+ *    of conditions and the following disclaimer.
+ *  - Redistributions in binary form must reproduce the above copyright notice, this
+ *    list of conditions and the following disclaimer in the documentation and/or
+ *    other materials provided with the distribution.
+ *  - Neither the name of Neohapsis nor the names of its contributors may be used to
+ *    endorse or promote products derived from this software without specific prior
+ *    written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR 
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
 #import <Security/Security.h>
-#import "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/Foundation.framework/Versions/C/Headers/NSTask.h"
+#import "./NSTask.h"
 #import "sqlite3.h"
 #include "stdio.h"
 
@@ -110,7 +110,7 @@ NSString *runOpenSSLWithArgs(NSArray *args)
 	{
 		return runProcess(@"/usr/bin/openssl", args);
 	}
-    else 
+    else
     {
     	printToStdOut(@"%s[ERROR] Cannot dump certificates, please install \"openssl\" with Cydia.\n%s",KRED, KWHT);
     	exit(0);
@@ -174,13 +174,13 @@ void dumpKeychainEntitlements()
     if (sqlite3_open(dbpath, &keychainDB) == SQLITE_OK)
     {
         const char *query_stmt = "select distinct agrp from genp union select distinct agrp from inet union select distinct agrp from cert union select distinct agrp from keys;";
-		
+
         if (sqlite3_prepare_v2(keychainDB, query_stmt, -1, &statement, NULL) == SQLITE_OK)
         {
             while(sqlite3_step(statement) == SQLITE_ROW)
-            {            
+            {
 				NSString *group = [[NSString alloc] initWithUTF8String:(const char *) sqlite3_column_text(statement, 0)];
-				
+
                 [entitlementXML appendFormat:@"\t\t\t<string>%@</string>\n", group];
                 [group release];
             }
@@ -213,11 +213,11 @@ NSString *listEntitlements()
     {
         const char *query_all = "select distinct agrp from genp union select distinct agrp from inet union select distinct agrp from cert union select distinct agrp from keys;";
         if (sqlite3_prepare_v2(keychainDB, query_all, -1, &statement, NULL) == SQLITE_OK)
-        {	
+        {
         	printToStdOut(@"%s[INFO] Listing available Entitlement Groups:\n%s", KGRN, KWHT);
         	int index = 0;
             while(sqlite3_step(statement) == SQLITE_ROW)
-            {            
+            {
 				NSString *group = [[NSString alloc] initWithUTF8String:(const char *) sqlite3_column_text(statement, 0)];
                 printToStdOut(@"Entitlement Group [%i]: %@\n",index, group);
                 [entitlementsArray addObject:group];
@@ -235,7 +235,7 @@ NSString *listEntitlements()
 		sqlite3_close(keychainDB);
 	}
 	else
-	{	
+	{
 		printToStdOut(@"%s[ERROR] Unknown error opening keychain database\n%s", KRED, KWHT);
 		return @"none";
 	}
@@ -265,7 +265,7 @@ NSMutableArray *getCommandLineOptions(int argc, char **argv)
 	while ((argument = getopt (argc, argv, "aegnickhs")) != -1)
     {
         switch(argument)
-        {	
+        {
         	case 's':
 				selectedEntitlementConstant = listEntitlements();
 				[arguments addObject:(id)kSecClassGenericPassword];
@@ -337,19 +337,19 @@ NSString * getEmptyKeychainItemString(CFTypeRef kSecClassType)
 	}
 	else if (kSecClassType == kSecClassInternetPassword)
     {
-		return @"[INFO] No Internet Password Keychain items found.\n[HINT] You should unlock your device!\n";	
-	} 
+		return @"[INFO] No Internet Password Keychain items found.\n[HINT] You should unlock your device!\n";
+	}
 	else if (kSecClassType == kSecClassIdentity)
     {
 		return @"[INFO] No Identity Keychain items found.\n[HINT] You should unlock your device!\n";
 	}
 	else if (kSecClassType == kSecClassCertificate)
     {
-		return @"[INFO] No Certificate Keychain items found.\n[HINT] You should unlock your device!\n";	
+		return @"[INFO] No Certificate Keychain items found.\n[HINT] You should unlock your device!\n";
 	}
 	else if (kSecClassType == kSecClassKey)
     {
-		return @"[INFO] No Key Keychain items found.\n[HINT] You should unlock your device!\n";	
+		return @"[INFO] No Key Keychain items found.\n[HINT] You should unlock your device!\n";
 	}
 	else
     {
@@ -359,7 +359,7 @@ NSString * getEmptyKeychainItemString(CFTypeRef kSecClassType)
 
 void printAccessibleAttribute(NSString *accessibleString)
 {
-	if ([accessibleString isEqualToString:@"dk"]) 
+	if ([accessibleString isEqualToString:@"dk"])
 		printToStdOut(@"%sAccessible Attribute: kSecAttrAccessibleAlways, protection level 0\n%s", KRED, KWHT);
 	else if ([accessibleString isEqualToString:@"ak"])
 		printToStdOut(@"%sAccessible Attribute: kSecAttrAccessibleWhenUnlocked, protection level 2 (default)\n%s", KYEL, KWHT);
@@ -387,10 +387,10 @@ void printGenericPassword(NSDictionary *passwordItem)
 	printToStdOut(@"Label: %@\n", [passwordItem objectForKey:(id)kSecAttrLabel]);
 	NSString* accessibleString = [passwordItem objectForKey:(id)kSecAttrAccessible];
 	printAccessibleAttribute(accessibleString);
-	printToStdOut(@"Description: %@\n", [passwordItem objectForKey:(id)kSecAttrDescription]); 
-	printToStdOut(@"Comment: %@\n", [passwordItem objectForKey:(id)kSecAttrComment]); 
-	printToStdOut(@"Synchronizable: %@\n", [passwordItem objectForKey:(id)kSecAttrSynchronizable]); 
-	printToStdOut(@"Generic Field: %@\n", [[passwordItem objectForKey:(id)kSecAttrGeneric] description]); 
+	printToStdOut(@"Description: %@\n", [passwordItem objectForKey:(id)kSecAttrDescription]);
+	printToStdOut(@"Comment: %@\n", [passwordItem objectForKey:(id)kSecAttrComment]);
+	printToStdOut(@"Synchronizable: %@\n", [passwordItem objectForKey:(id)kSecAttrSynchronizable]);
+	printToStdOut(@"Generic Field: %@\n", [[passwordItem objectForKey:(id)kSecAttrGeneric] description]);
 	NSData* passwordData = [passwordItem objectForKey:(id)kSecValueData];
 	printDataToStdOut("Keychain Data", passwordData);
 }
@@ -479,12 +479,12 @@ void printKey(NSDictionary *keyItem)
 	 		printToStdOut(@"RSA private key data:\n");
 	 		printPrivateKeyPEM(keyItem[@"v_Data"]);
 	 	}
-	 	else 
+	 	else
 	 	{
 	 		printToStdOut(@"[INFO] Key data (EC, Symmetric, ...) output not implemented yet. Stay tuned.\n");
 	 	}
 	 }
-	 else 
+	 else
 	 {
 	 	printToStdOut(@"[INFO] Malformed key data detected. Check/Cleanup KeyChain manually.\n");
 	 }
@@ -516,26 +516,26 @@ void printResultsForSecClass(NSArray *keychainItems, CFTypeRef kSecClassType)
 	for (keychainItem in keychainItems)
     {
 		if (kSecClassType == kSecClassGenericPassword)
-        {	
+        {
         	if ([selectedEntitlementConstant isEqualToString:@"none"])
      		{
      			printGenericPassword(keychainItem);
      		}
-			else 
+			else
 			{
 				if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant])
 				{
 					printGenericPassword(keychainItem);
 				}
 			}
-		}	
+		}
 		else if (kSecClassType == kSecClassInternetPassword)
         {
         	if ([selectedEntitlementConstant isEqualToString:@"none"])
      		{
      			printInternetPassword(keychainItem);
      		}
-			else 
+			else
 			{
 				if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant])
 				{
@@ -549,7 +549,7 @@ void printResultsForSecClass(NSArray *keychainItems, CFTypeRef kSecClassType)
      		{
      			printIdentity(keychainItem);
      		}
-			else 
+			else
 			{
 				if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant])
 				{
@@ -563,7 +563,7 @@ void printResultsForSecClass(NSArray *keychainItems, CFTypeRef kSecClassType)
      		{
      			printCertificate(keychainItem);
      		}
-			else 
+			else
 			{
 				if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant])
 				{
@@ -577,7 +577,7 @@ void printResultsForSecClass(NSArray *keychainItems, CFTypeRef kSecClassType)
      		{
      			printKey(keychainItem);
      		}
-			else 
+			else
 			{
 				if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant])
 				{
@@ -589,12 +589,12 @@ void printResultsForSecClass(NSArray *keychainItems, CFTypeRef kSecClassType)
 	return;
 }
 
-int main(int argc, char **argv) 
+int main(int argc, char **argv)
 {
 	id pool=[NSAutoreleasePool new];
 	NSArray* arguments;
 	arguments = getCommandLineOptions(argc, argv);
-	NSArray *passwordItems;	
+	NSArray *passwordItems;
 	if ([arguments indexOfObject:@"dumpEntitlements"] != NSNotFound)
     {
 		dumpKeychainEntitlements();
@@ -605,7 +605,7 @@ int main(int argc, char **argv)
     {
 		keychainItems = getKeychainObjectsForSecClass((CFTypeRef)kSecClassType);
 		printResultsForSecClass(keychainItems, (CFTypeRef)kSecClassType);
-		[keychainItems release];	
+		[keychainItems release];
 	}
 	[pool drain];
 }
