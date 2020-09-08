@@ -1,5 +1,5 @@
-GCC_BIN=`xcrun --sdk iphoneos --find gcc`
-SDK=`xcrun --sdk iphoneos --show-sdk-path`
+GCC_BIN="`xcrun --sdk iphoneos --find gcc`"
+SDK="`xcrun --sdk iphoneos --show-sdk-path`"
 #support iPhone 3GS and above, delete armv6 to avoid SDK error
 ARCH_FLAGS=-arch armv7 -arch armv7s -arch arm64
 
