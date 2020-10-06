@@ -7,6 +7,12 @@ if [ ! -d "$KEYCHAIN_DUMPER_FOLDER" ] ; then
   mkdir "$KEYCHAIN_DUMPER_FOLDER" ;
 fi
 
+if [ ! -f "$KEYCHAIN_DUMPER_FOLDER/keychain_dumper" ]; then
+  echo "The file \"$KEYCHAIN_DUMPER_FOLDER/keychain_dumper\" does not exist. " \
+       "Move the binary into the folder \"$KEYCHAIN_DUMPER_FOLDER/\" and run the script again."
+  exit 1
+fi
+
 # set -e ;
 
 ENTITLEMENT_PATH=$KEYCHAIN_DUMPER_FOLDER/ent.xml
@@ -30,7 +36,7 @@ declare -a invalidKeychainArray=("com.apple.bluetooth"
 
 echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" > $ENTITLEMENT_PATH
 echo "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">" >> $ENTITLEMENT_PATH
-echo "<plist version=\"1.0\">" >> ENTITLEMENT_PATH
+echo "<plist version=\"1.0\">" >> $ENTITLEMENT_PATH
 echo "  <dict>" >> $ENTITLEMENT_PATH
 echo "    <key>keychain-access-groups</key>" >> $ENTITLEMENT_PATH
 echo "    <array>" >> $ENTITLEMENT_PATH
