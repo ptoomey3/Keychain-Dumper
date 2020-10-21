@@ -60,21 +60,21 @@ void printToStdOut(NSString *format, ...) {
 /// Prints a `NSData` to stdout, with either the format "\(name): \(data)\n\n"
 /// if the data is valid UTF-8, or "\(name) (Hex): \(data)\n\n" if it isn't
 void printDataToStdOut(const char *name, NSData *data) {
-	NSString *utf8Str = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-	if (utf8Str) {
-		printToStdOut(@"%s: %@\n\n", name, utf8Str);
-		[utf8Str release];
-	}
-	else {
-		NSUInteger length = [data length];
-		char *hexStr = malloc(length * 2 + 1);
-		const uint8_t *ptr = [data bytes];
-		for (int i = 0; i < length; i++) {
-			sprintf(hexStr + i*2, "%02x", ptr[i]);
-		}
-		printToStdOut(@"%s (Hex): 0x%s\n\n", name, hexStr);
-		free(hexStr);
-	}
+  NSString *utf8Str = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+  if (utf8Str) {
+    printToStdOut(@"%s: %@\n\n", name, utf8Str);
+    [utf8Str release];
+  }
+  else {
+    NSUInteger length = [data length];
+    char *hexStr = malloc(length * 2 + 1);
+    const uint8_t *ptr = [data bytes];
+    for (int i = 0; i < length; i++) {
+      sprintf(hexStr + i*2, "%02x", ptr[i]);
+    }
+    printToStdOut(@"%s (Hex): 0x%s\n\n", name, hexStr);
+    free(hexStr);
+  }
 }
 
 NSString *runProcess(NSString *executablePath, NSArray *args) {
@@ -101,11 +101,11 @@ NSString *saveDataTemporarily(NSData *data) {
 }
 
 NSString *runOpenSSLWithArgs(NSArray *args) {
-	NSFileManager *fileManager = [NSFileManager defaultManager];
-	NSString *pathForFile = @"/usr/bin/openssl";
-	if ([fileManager fileExistsAtPath:pathForFile]) {
-		return runProcess(@"/usr/bin/openssl", args);
-	}
+  NSFileManager *fileManager = [NSFileManager defaultManager];
+  NSString *pathForFile = @"/usr/bin/openssl";
+  if ([fileManager fileExistsAtPath:pathForFile]) {
+    return runProcess(@"/usr/bin/openssl", args);
+  }
   else {
    printToStdOut(@"%s[ERROR] Cannot dump certificates, please install \"openssl\" with Cydia.\n%s",KRED, KWHT);
    exit(0);
@@ -113,12 +113,12 @@ NSString *runOpenSSLWithArgs(NSArray *args) {
 }
 
 NSString *runOpenSSLForConversion(NSString *prog, NSData *data) {
-  NSArray *args =  @[prog, @"-inform", @"der", @"-in", saveDataTemporarily(data), @"-outform", @"pem"];
+  NSArray *args = @[prog, @"-inform", @"der", @"-in", saveDataTemporarily(data), @"-outform", @"pem"];
   return runOpenSSLWithArgs(args);
 }
 
 NSString *runOpenSSLForPublicConversion(NSString *prog, NSData *data) {
-  NSArray *args =  @[prog, @"-RSAPublicKey_in", @"-inform", @"der", @"-in", saveDataTemporarily(data), @"-outform", @"pem"];
+  NSArray *args = @[prog, @"-RSAPublicKey_in", @"-inform", @"der", @"-in", saveDataTemporarily(data), @"-outform", @"pem"];
   return runOpenSSLWithArgs(args);
 }
 
@@ -133,8 +133,6 @@ void printPublicKeyPEM(NSData *data) {
 void printCertPEM(NSData *data) {
   printToStdOut(@"%@\n", runOpenSSLForConversion(@"x509", data));
 }
-
-
 
 void printUsage() {
   printToStdOut(@"Usage: keychain_dumper [-e]|[-h]|[-agnick]\n");
@@ -187,45 +185,45 @@ void dumpKeychainEntitlements() {
 }
 
 NSString *listEntitlements() {
-	NSMutableArray *entitlementsArray = [[NSMutableArray alloc] init];
+  NSMutableArray *entitlementsArray = [[NSMutableArray alloc] init];
   const char *dbpath = [databasePath UTF8String];
   sqlite3 *keychainDB;
   sqlite3_stmt *statement;
   if (sqlite3_open(dbpath, &keychainDB) == SQLITE_OK) {
     const char *query_all = "select distinct agrp from genp union select distinct agrp from inet union select distinct agrp from cert union select distinct agrp from keys;";
     if (sqlite3_prepare_v2(keychainDB, query_all, -1, &statement, NULL) == SQLITE_OK) {
-     printToStdOut(@"%s[INFO] Listing available Entitlement Groups:\n%s", KGRN, KWHT);
-     int index = 0;
-     while(sqlite3_step(statement) == SQLITE_ROW) {
-      NSString *group = [[NSString alloc] initWithUTF8String:(const char *) sqlite3_column_text(statement, 0)];
-      printToStdOut(@"Entitlement Group [%i]: %@\n",index, group);
-      [entitlementsArray addObject:group];
-      [group release];
-      index += 1;
+      printToStdOut(@"%s[INFO] Listing available Entitlement Groups:\n%s", KGRN, KWHT);
+      int index = 0;
+      while(sqlite3_step(statement) == SQLITE_ROW) {
+        NSString *group = [[NSString alloc] initWithUTF8String:(const char *) sqlite3_column_text(statement, 0)];
+        printToStdOut(@"Entitlement Group [%i]: %@\n",index, group);
+        [entitlementsArray addObject:group];
+        [group release];
+        index++;
+      }
+      sqlite3_finalize(statement);
     }
-    sqlite3_finalize(statement);
+    else {
+      printToStdOut(@"%s[ERROR] Unknown error querying keychain database\n%s", KRED, KWHT);
+      return @"none";
+    }
+
+    sqlite3_close(keychainDB);
   }
   else {
-    printToStdOut(@"%s[ERROR] Unknown error querying keychain database\n%s", KRED, KWHT);
+    printToStdOut(@"%s[ERROR] Unknown error opening keychain database\n%s", KRED, KWHT);
     return @"none";
   }
-
-  sqlite3_close(keychainDB);
-}
-else {
-  printToStdOut(@"%s[ERROR] Unknown error opening keychain database\n%s", KRED, KWHT);
-  return @"none";
-}
-int userSelection;
-printToStdOut(@"%s[ACTION] Select Entitlement Group by Number: %s", KGRN, KWHT);
-scanf("%d", &userSelection);
-if (userSelection > [entitlementsArray count]-1 || userSelection < 0) {
-  printToStdOut(@"%s[ERROR] Invalid selection, index out of range.\n%s", KRED, KWHT);
-  exit(0);
-}
-NSString *selectedEntitlement = [entitlementsArray objectAtIndex:userSelection];
-printToStdOut(@"%s[INFO] %@ selected.\n%s", KYEL, selectedEntitlement, KWHT);
-return selectedEntitlement;
+  int userSelection;
+  printToStdOut(@"%s[ACTION] Select Entitlement Group by Number: %s", KGRN, KWHT);
+  scanf("%d", &userSelection);
+  if (userSelection > [entitlementsArray count]-1 || userSelection < 0) {
+    printToStdOut(@"%s[ERROR] Invalid selection, index out of range.\n%s", KRED, KWHT);
+    exit(0);
+  }
+  NSString *selectedEntitlement = [entitlementsArray objectAtIndex:userSelection];
+  printToStdOut(@"%s[INFO] %@ selected.\n%s", KYEL, selectedEntitlement, KWHT);
+  return selectedEntitlement;
 }
 
 NSMutableArray *getCommandLineOptions(int argc, char **argv) {
@@ -238,50 +236,50 @@ NSMutableArray *getCommandLineOptions(int argc, char **argv) {
   }
   while ((argument = getopt (argc, argv, "aegnickhs")) != -1) {
     switch(argument) {
-     case 's':
-     selectedEntitlementConstant = listEntitlements();
-     [arguments addObject:(id)kSecClassGenericPassword];
-     [arguments addObject:(id)kSecClassInternetPassword];
-     [arguments addObject:(id)kSecClassIdentity];
-     [arguments addObject:(id)kSecClassCertificate];
-     [arguments addObject:(id)kSecClassKey];
-     return [arguments autorelease];
-     case 'a':
-     [arguments addObject:(id)kSecClassGenericPassword];
-     [arguments addObject:(id)kSecClassInternetPassword];
-     [arguments addObject:(id)kSecClassIdentity];
-     [arguments addObject:(id)kSecClassCertificate];
-     [arguments addObject:(id)kSecClassKey];
-     return [arguments autorelease];
-     case 'e':
-     [arguments addObject:@"dumpEntitlements"];
-     return [arguments autorelease];
-     case 'g':
-     [arguments addObject:(id)kSecClassGenericPassword];
-     break;
-     case 'n':
-     [arguments addObject:(id)kSecClassInternetPassword];
-     break;
-     case 'i':
-     [arguments addObject:(id)kSecClassIdentity];
-     break;
-     case 'c':
-     [arguments addObject:(id)kSecClassCertificate];
-     break;
-     case 'k':
-     [arguments addObject:(id)kSecClassKey];
-     break;
-     case 'h':
-     printUsage();
-     break;
-     case '?':
-     printUsage();
-     exit(EXIT_FAILURE);
-     default:
-     continue;
-   }
- }
- return [arguments autorelease];
+      case 's':
+        selectedEntitlementConstant = listEntitlements();
+        [arguments addObject:(id)kSecClassGenericPassword];
+        [arguments addObject:(id)kSecClassInternetPassword];
+        [arguments addObject:(id)kSecClassIdentity];
+        [arguments addObject:(id)kSecClassCertificate];
+        [arguments addObject:(id)kSecClassKey];
+        return [arguments autorelease];
+      case 'a':
+        [arguments addObject:(id)kSecClassGenericPassword];
+        [arguments addObject:(id)kSecClassInternetPassword];
+        [arguments addObject:(id)kSecClassIdentity];
+        [arguments addObject:(id)kSecClassCertificate];
+        [arguments addObject:(id)kSecClassKey];
+        return [arguments autorelease];
+      case 'e':
+        [arguments addObject:@"dumpEntitlements"];
+        return [arguments autorelease];
+      case 'g':
+        [arguments addObject:(id)kSecClassGenericPassword];
+        break;
+      case 'n':
+        [arguments addObject:(id)kSecClassInternetPassword];
+        break;
+      case 'i':
+        [arguments addObject:(id)kSecClassIdentity];
+        break;
+      case 'c':
+        [arguments addObject:(id)kSecClassCertificate];
+        break;
+      case 'k':
+        [arguments addObject:(id)kSecClassKey];
+        break;
+      case 'h':
+        printUsage();
+        break;
+      case '?':
+        printUsage();
+        exit(EXIT_FAILURE);
+      default:
+        continue;
+    }
+  }
+  return [arguments autorelease];
 }
 
 NSArray * getKeychainObjectsForSecClass(CFTypeRef kSecClassType) {
@@ -300,7 +298,7 @@ NSArray * getKeychainObjectsForSecClass(CFTypeRef kSecClassType) {
 }
 
 NSString * getEmptyKeychainItemString(CFTypeRef kSecClassType) {
-	if (kSecClassType == kSecClassGenericPassword) {
+  if (kSecClassType == kSecClassGenericPassword) {
     return @"[INFO] No Generic Password Keychain items found.\n[HINT] You should unlock your device!\n";
   } else if (kSecClassType == kSecClassInternetPassword) {
     return @"[INFO] No Internet Password Keychain items found.\n[HINT] You should unlock your device!\n";
@@ -316,22 +314,22 @@ NSString * getEmptyKeychainItemString(CFTypeRef kSecClassType) {
 }
 
 void printAccessibleAttribute(NSString *accessibleString) {
-	if ([accessibleString isEqualToString:@"dk"]) {
-		printToStdOut(@"%sAccessible Attribute: kSecAttrAccessibleAlways, protection level 0\n%s", KRED, KWHT);
+  if ([accessibleString isEqualToString:@"dk"]) {
+    printToStdOut(@"%sAccessible Attribute: kSecAttrAccessibleAlways, protection level 0\n%s", KRED, KWHT);
   } else if ([accessibleString isEqualToString:@"ak"]) {
-		printToStdOut(@"%sAccessible Attribute: kSecAttrAccessibleWhenUnlocked, protection level 2 (default)\n%s", KYEL, KWHT);
+    printToStdOut(@"%sAccessible Attribute: kSecAttrAccessibleWhenUnlocked, protection level 2 (default)\n%s", KYEL, KWHT);
   } else if ([accessibleString isEqualToString:@"ck"]) {
-		printToStdOut(@"%sAccessible Attribute: kSecAttrAccessibleAfterFirstUnlock, protection level 1\n%s", KRED, KWHT);
+    printToStdOut(@"%sAccessible Attribute: kSecAttrAccessibleAfterFirstUnlock, protection level 1\n%s", KRED, KWHT);
   } else if ([accessibleString isEqualToString:@"dku"]) {
-		printToStdOut(@"%sAccessible Attribute: kSecAttrAccessibleAlwaysThisDeviceOnly, protection level 3\n%s", KBLU, KWHT);
+    printToStdOut(@"%sAccessible Attribute: kSecAttrAccessibleAlwaysThisDeviceOnly, protection level 3\n%s", KBLU, KWHT);
   } else if ([accessibleString isEqualToString:@"aku"]) {
-		printToStdOut(@"%sAccessible Attribute: kSecAttrAccessibleWhenUnlockedThisDeviceOnly, protection level 5\n%s", KBLU, KWHT);
+    printToStdOut(@"%sAccessible Attribute: kSecAttrAccessibleWhenUnlockedThisDeviceOnly, protection level 5\n%s", KBLU, KWHT);
   } else if ([accessibleString isEqualToString:@"cku"]) {
-		printToStdOut(@"%sAccessible Attribute: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, protection level 4\n%s", KBLU, KWHT);
+    printToStdOut(@"%sAccessible Attribute: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, protection level 4\n%s", KBLU, KWHT);
   } else if ([accessibleString isEqualToString:@"akpu"]) {
-		printToStdOut(@"%sAccessible Attribute: kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly, protection level 6\n%s",KGRN, KWHT);
+    printToStdOut(@"%sAccessible Attribute: kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly, protection level 6\n%s",KGRN, KWHT);
   } else {
-		printToStdOut(@"%sUnknown Accessible Attribute: %@\n%s", KRED, accessibleString, KWHT);
+    printToStdOut(@"%sUnknown Accessible Attribute: %@\n%s", KRED, accessibleString, KWHT);
   }
 }
 
@@ -385,7 +383,7 @@ void printCertificate(NSDictionary *certificateItem) {
 
 void printKey(NSDictionary *keyItem) {
   NSString *keyClass = @"Unknown";
-    //NSLog(@"%@", keyItem); //Debugging purposes
+  //NSLog(@"%@", keyItem); //Debugging purposes
   CFTypeRef _keyClass = [keyItem objectForKey:(id)kSecAttrKeyClass];
   CFTypeRef _keyType = [keyItem objectForKey:(id)kSecAttrKeyType];
   int keySize = [[keyItem objectForKey:(id)kSecAttrKeySizeInBits] intValue];
@@ -428,69 +426,58 @@ void printKey(NSDictionary *keyItem) {
     }
   } else {
    printToStdOut(@"[INFO] Malformed key data detected. Check/Cleanup KeyChain manually.\n");
- }
- printToStdOut(@"\n");
+  }
+  printToStdOut(@"\n");
 }
 
 void printIdentity(NSDictionary *identityItem) {
-	SecIdentityRef identity = (SecIdentityRef)[identityItem objectForKey:(id)kSecValueRef];
-	SecCertificateRef certificate;
-	SecIdentityCopyCertificate(identity, &certificate);
-	NSMutableDictionary *identityItemWithCertificate = [identityItem mutableCopy];
-	[identityItemWithCertificate setObject:(id)certificate forKey:(id)kSecValueRef];
-	printToStdOut(@"Identity\n");
-	printToStdOut(@"--------\n");
-	printCertificate(identityItemWithCertificate);
-	printKey(identityItemWithCertificate);
-	[identityItemWithCertificate release];
+  SecIdentityRef identity = (SecIdentityRef)[identityItem objectForKey:(id)kSecValueRef];
+  SecCertificateRef certificate;
+  SecIdentityCopyCertificate(identity, &certificate);
+  NSMutableDictionary *identityItemWithCertificate = [identityItem mutableCopy];
+  [identityItemWithCertificate setObject:(id)certificate forKey:(id)kSecValueRef];
+  printToStdOut(@"Identity\n");
+  printToStdOut(@"--------\n");
+  printCertificate(identityItemWithCertificate);
+  printKey(identityItemWithCertificate);
+  [identityItemWithCertificate release];
 }
 
 void printResultsForSecClass(NSArray *keychainItems, CFTypeRef kSecClassType) {
-	if (keychainItems == nil) {
+  if (keychainItems == nil) {
     printToStdOut(getEmptyKeychainItemString(kSecClassType));
     return;
   }
-  NSDictionary *keychainItem;
-  for (keychainItem in keychainItems) {
+  for (NSDictionary *keychainItem in keychainItems) {
     if (kSecClassType == kSecClassGenericPassword) {
       if ([selectedEntitlementConstant isEqualToString:@"none"]) {
         printGenericPassword(keychainItem);
-      } else {
-        if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant]) {
-          printGenericPassword(keychainItem);
-        }
+      } else if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant]) {
+        printGenericPassword(keychainItem);
       }
     } else if (kSecClassType == kSecClassInternetPassword) {
       if ([selectedEntitlementConstant isEqualToString:@"none"]) {
         printInternetPassword(keychainItem);
-      } else {
-        if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant]) {
-          printInternetPassword(keychainItem);
-        }
+      } else if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant]) {
+        printInternetPassword(keychainItem);
       }
     } else if (kSecClassType == kSecClassIdentity) {
       if ([selectedEntitlementConstant isEqualToString:@"none"]) {
         printIdentity(keychainItem);
-      } else {
-        if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant]) {
-          printIdentity(keychainItem);
-        }
+      } else if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant]) {
+        printIdentity(keychainItem);
       }
     } else if (kSecClassType == kSecClassCertificate) {
       if ([selectedEntitlementConstant isEqualToString:@"none"]) {
         printCertificate(keychainItem);
-      } else {
-        if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant]) {
-          printCertificate(keychainItem);
-        }
+      } else if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant]) {
+        printCertificate(keychainItem);
       }
     } else if (kSecClassType == kSecClassKey) {
       if ([selectedEntitlementConstant isEqualToString:@"none"]) {
         printKey(keychainItem);
-      } else {
-        if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant]) {
-          printKey(keychainItem);
-        }
+      } else if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant]) {
+        printKey(keychainItem);
       }
     }
   }
@@ -498,11 +485,9 @@ void printResultsForSecClass(NSArray *keychainItems, CFTypeRef kSecClassType) {
 }
 
 int main(int argc, char **argv) {
-	id pool=[NSAutoreleasePool new];
-	NSArray* arguments;
-	arguments = getCommandLineOptions(argc, argv);
-	NSArray *passwordItems;
-	if ([arguments indexOfObject:@"dumpEntitlements"] != NSNotFound) {
+  id pool = [NSAutoreleasePool new];
+  NSArray* arguments = getCommandLineOptions(argc, argv);
+  if ([arguments indexOfObject:@"dumpEntitlements"] != NSNotFound) {
     dumpKeychainEntitlements();
     exit(EXIT_SUCCESS);
   }
