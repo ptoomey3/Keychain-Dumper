@@ -6,7 +6,7 @@ All that should be needed to use this tool is the binary that is in the [Release
 
 To follow these directions successfully, your device must be jailbroken.
 
-Upload keychain_dumper to a directory of your choice on the target device (I have used /tmp during testing). Once uploaded, be sure to validate that keychain_dumper is executable (chmod +x ./keychain_dumper if it isn't) and validate that /private/var/Keychains/keychain-2.db is world readable (chmod +r /private/var/Keychains/keychain-2.db if it isn't).
+Upload keychain_dumper to a directory of your choice on the target device (I have used /tmp during testing). Once uploaded, be sure to validate that keychain_dumper is executable (`# chmod +x ./keychain_dumper` if it isn't) and validate that /private/var/Keychains/keychain-2.db is world readable (`# chmod +r /private/var/Keychains/keychain-2.db` if it isn't).
 
 Note: iOS 11 devices using Electra (or other jailbreaks) may still require a trick to bypass the native sandbox. Compile the binary with the included `entitlements.xml`, sign it with the developer account certificate/priv_key and copy the binary to `/bin` or `/sbin` (which already allow execution).
 
