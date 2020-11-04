@@ -45,7 +45,7 @@
 #define KWHT "\x1B[37m"
 
 static NSString *selectedEntitlementConstant = @"none";
-static NSString *databasePath = @"/var/Keychains/keychain-2.db";
+static NSString *databasePath = @"/private/var/Keychains/keychain-2.db";
 
 
 void printToStdOut(NSString *format, ...) {
