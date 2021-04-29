@@ -44,7 +44,8 @@
 #define KCYN "\x1B[36m"
 #define KWHT "\x1B[37m"
 
-static NSString *selectedEntitlementConstant = @"none";
+//static NSString *selectedEntitlementConstant = @"none";
+static NSArray *selectedEntitlementConstantList = nil;
 static NSString *databasePath = @"/var/Keychains/keychain-2.db";
 
 
@@ -186,7 +187,7 @@ void dumpKeychainEntitlements() {
   }
 }
 
-NSString *listEntitlements() {
+void listEntitlements() {
 	NSMutableArray *entitlementsArray = [[NSMutableArray alloc] init];
   const char *dbpath = [databasePath UTF8String];
   sqlite3 *keychainDB;
@@ -207,25 +208,29 @@ NSString *listEntitlements() {
   }
   else {
     printToStdOut(@"%s[ERROR] Unknown error querying keychain database\n%s", KRED, KWHT);
-    return @"none";
+    return;
   }
 
   sqlite3_close(keychainDB);
 }
 else {
   printToStdOut(@"%s[ERROR] Unknown error opening keychain database\n%s", KRED, KWHT);
-  return @"none";
+  return;
 }
-int userSelection;
-printToStdOut(@"%s[ACTION] Select Entitlement Group by Number: %s", KGRN, KWHT);
-scanf("%d", &userSelection);
-if (userSelection > [entitlementsArray count]-1 || userSelection < 0) {
-  printToStdOut(@"%s[ERROR] Invalid selection, index out of range.\n%s", KRED, KWHT);
-  exit(0);
-}
-NSString *selectedEntitlement = [entitlementsArray objectAtIndex:userSelection];
-printToStdOut(@"%s[INFO] %@ selected.\n%s", KYEL, selectedEntitlement, KWHT);
-return selectedEntitlement;
+char userSelectionBuf[128] = {0};
+printToStdOut(@"%s[ACTION] Select Entitlement Group by Number, split with ',': %s", KGRN, KWHT);
+scanf("%s", userSelectionBuf);
+NSMutableArray* userSelectionList = [NSMutableArray array];
+NSString* userSelectInfo = [NSString stringWithUTF8String:userSelectionBuf];
+NSArray* userSelectList = [userSelectInfo componentsSeparatedByString:@","];
+[userSelectList enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+    int number = [obj intValue];
+    if(number >= 0 && number < [entitlementsArray count]){
+      NSString* item = [entitlementsArray objectAtIndex:number];
+      [userSelectionList addObject:item];
+    }
+}];
+selectedEntitlementConstantList = userSelectionList;
 }
 
 NSMutableArray *getCommandLineOptions(int argc, char **argv) {
@@ -239,7 +244,7 @@ NSMutableArray *getCommandLineOptions(int argc, char **argv) {
   while ((argument = getopt (argc, argv, "aegnickhs")) != -1) {
     switch(argument) {
      case 's':
-     selectedEntitlementConstant = listEntitlements();
+     listEntitlements();
      [arguments addObject:(id)kSecClassGenericPassword];
      [arguments addObject:(id)kSecClassInternetPassword];
      [arguments addObject:(id)kSecClassIdentity];
@@ -453,42 +458,42 @@ void printResultsForSecClass(NSArray *keychainItems, CFTypeRef kSecClassType) {
   NSDictionary *keychainItem;
   for (keychainItem in keychainItems) {
     if (kSecClassType == kSecClassGenericPassword) {
-      if ([selectedEntitlementConstant isEqualToString:@"none"]) {
+      if ([selectedEntitlementConstantList count] == 0) {
         printGenericPassword(keychainItem);
       } else {
-        if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant]) {
+        if ([selectedEntitlementConstantList containsObject:[keychainItem objectForKey:(id)kSecAttrAccessGroup]]) {
           printGenericPassword(keychainItem);
         }
       }
     } else if (kSecClassType == kSecClassInternetPassword) {
-      if ([selectedEntitlementConstant isEqualToString:@"none"]) {
+      if ([selectedEntitlementConstantList count] == 0) {
         printInternetPassword(keychainItem);
       } else {
-        if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant]) {
+        if ([selectedEntitlementConstantList containsObject:[keychainItem objectForKey:(id)kSecAttrAccessGroup]]) {
           printInternetPassword(keychainItem);
         }
       }
     } else if (kSecClassType == kSecClassIdentity) {
-      if ([selectedEntitlementConstant isEqualToString:@"none"]) {
+      if ([selectedEntitlementConstantList count] == 0) {
         printIdentity(keychainItem);
       } else {
-        if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant]) {
+        if ([selectedEntitlementConstantList containsObject:[keychainItem objectForKey:(id)kSecAttrAccessGroup]]) {
           printIdentity(keychainItem);
         }
       }
     } else if (kSecClassType == kSecClassCertificate) {
-      if ([selectedEntitlementConstant isEqualToString:@"none"]) {
+      if ([selectedEntitlementConstantList count] == 0) {
         printCertificate(keychainItem);
       } else {
-        if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant]) {
+        if ([selectedEntitlementConstantList containsObject:[keychainItem objectForKey:(id)kSecAttrAccessGroup]]) {
           printCertificate(keychainItem);
         }
       }
     } else if (kSecClassType == kSecClassKey) {
-      if ([selectedEntitlementConstant isEqualToString:@"none"]) {
+      if ([selectedEntitlementConstantList count] == 0) {
         printKey(keychainItem);
       } else {
-        if ([[keychainItem objectForKey:(id)kSecAttrAccessGroup] isEqualToString:selectedEntitlementConstant]) {
+        if ([selectedEntitlementConstantList containsObject:[keychainItem objectForKey:(id)kSecAttrAccessGroup]]) {
           printKey(keychainItem);
         }
       }
