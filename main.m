@@ -340,6 +340,19 @@ void printAccessibleAttribute(NSString *accessibleString) {
   }
 }
 
+void printSecAccessControl(NSObject *accessControlObject){
+  NSString* accessControlString = accessControlObject.debugDescription;
+  if ([accessControlString rangeOfString:@"pbioc"].location != NSNotFound && [accessControlString rangeOfString:@"pbioh"].location != NSNotFound) {
+    printToStdOut(@"%sSecAccessControl flag: .biometryCurrentSet%s\n", KGRN, KWHT);
+  }else if ([accessControlString rangeOfString:@"pbioc"].location != NSNotFound && [accessControlString rangeOfString:@"pbioh"].location == NSNotFound) {
+    printToStdOut(@"%sSecAccessControl flag: .biometryAny%s\n", KYEL, KWHT);
+  }else if ([accessControlString rangeOfString:@"cpo(DeviceOwnerAuthentication)"].location != NSNotFound) {
+    printToStdOut(@"%sSecAccessControl flag: .userPresence%s\n", KRED, KWHT);
+  }else if ([accessControlString rangeOfString:@"cup(true));odel(true)"].location != NSNotFound) {
+    printToStdOut(@"%sSecAccessControl flag: .devicePasscode%s\n", KRED, KWHT);
+  };
+}
+
 void printGenericPassword(NSDictionary *passwordItem) {
   printToStdOut(@"Generic Password\n");
   printToStdOut(@"----------------\n");
@@ -366,6 +379,7 @@ void printInternetPassword(NSDictionary *passwordItem) {
   printToStdOut(@"Label: %@\n", [passwordItem objectForKey:(id)kSecAttrLabel]);
   NSString* accessibleString = [passwordItem objectForKey:(id)kSecAttrAccessible];
   printAccessibleAttribute(accessibleString);
+  printSecAccessControl([passwordItem objectForKey:(id)kSecAttrAccessControl]);
   NSData* passwordData = [passwordItem objectForKey:(id)kSecValueData];
   printDataToStdOut("Keychain Data", passwordData);
 }
@@ -382,6 +396,7 @@ void printCertificate(NSDictionary *certificateItem) {
   printToStdOut(@"Label: %@\n", [certificateItem objectForKey:(id)kSecAttrLabel]);
   NSString* accessibleString = [certificateItem objectForKey:(id)kSecAttrAccessible];
   printAccessibleAttribute(accessibleString);
+  printSecAccessControl([certificateItem objectForKey:(id)kSecAttrAccessControl]);
   printToStdOut(@"Serial Number: %@\n", [certificateItem objectForKey:(id)kSecAttrSerialNumber]);
   printToStdOut(@"Subject Key ID: %@\n", [certificateItem objectForKey:(id)kSecAttrSubjectKeyID]);
   printToStdOut(@"Subject Key Hash: %@\n\n", [certificateItem objectForKey:(id)kSecAttrPublicKeyHash]);
@@ -408,6 +423,7 @@ void printKey(NSDictionary *keyItem) {
   printToStdOut(@"Label: %@\n", [keyItem objectForKey:(id)kSecAttrLabel]);
   NSString* accessibleString = [keyItem objectForKey:(id)kSecAttrAccessible];
   printAccessibleAttribute(accessibleString);
+  printSecAccessControl([keyItem objectForKey:(id)kSecAttrAccessControl]);
   printToStdOut(@"Application Label: %@\n", [keyItem objectForKey:(id)kSecAttrApplicationLabel]);
   printToStdOut(@"Application Tag: %@\n", [keyItem objectForKey:(id)kSecAttrApplicationTag]);
   printToStdOut(@"Key Class: %@\n", keyClass);
