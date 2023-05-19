@@ -49,6 +49,11 @@ You should be able to compile the project using the included makefile.
 
 If all goes well you should have a binary `keychain_dumper` placed in the same directory as all of the other project files.
 
+If you are not able to compile with default Apple SDK, try to replace SDK path in Makefile with Theos SDK:
+
+    SDK="/path/to/theos/sdks/iPhoneOS14.5.sdk"
+
+
 ### Sign It
 
 First we need to find the certificate to use for signing.
@@ -64,6 +69,23 @@ You should now be able to follow the directions specified in the Usage section a
     ./keychain_dumper -e > /var/tmp/entitlements.xml
 
 The resulting file can be used in place of the included entitlements.xml file.
+
+Large amount of access groups in entitlements.xml may result in tool not dumping any keys. Include only access groups that you want to dump keys from. Example of correct entitlements.xml file:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>keychain-access-groups</key>
+    <array>
+      <string>groupName</string>
+    </array>
+    <key>platform-application</key> <true/>
+    <key>com.apple.private.security.no-container</key>  <true/>
+  </dict>
+</plist>
+```
 
 ## Contact & Help
 
