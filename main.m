@@ -522,7 +522,7 @@ int main(int argc, char **argv) {
 	id pool=[NSAutoreleasePool new];
 	NSArray* arguments;
 	arguments = getCommandLineOptions(argc, argv);
-	NSArray *passwordItems;
+	// NSArray *passwordItems;
 	if ([arguments indexOfObject:@"dumpEntitlements"] != NSNotFound) {
     dumpKeychainEntitlements();
     exit(EXIT_SUCCESS);

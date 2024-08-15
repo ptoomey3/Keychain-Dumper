@@ -1,0 +1,10 @@
+Package: com.yourcompany.keychain-dumper
+Name: keychain_dumper
+Depends: 
+Version: 0.0.1
+Architecture: iphoneos-arm
+Description: An awesome tool of some sort!!
+Maintainer: _
+Author: _
+Section: System
+Tag: role::hacker

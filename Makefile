@@ -1,33 +1,16 @@
-GCC_BIN="`xcrun --sdk iphoneos --find gcc`"
-SDK="`xcrun --sdk iphoneos --show-sdk-path`"
-#support iPhone 3GS and above, delete armv6 to avoid SDK error
-ARCH_FLAGS=-arch armv7 -arch armv7s -arch arm64
+TARGET := iphone:clang:latest:10.0
+export THEOS_DEVICE_IP = 192.168.31.89
+export THEOS_DEVICE_PORT = 22
+include $(THEOS)/makefiles/common.mk
 
-LDFLAGS	=\
-	-F$(SDK)/System/Library/Frameworks/\
-	-framework UIKit\
-	-framework CoreFoundation\
-	-framework Foundation\
-	-framework CoreGraphics\
-	-framework Security\
-	-lobjc\
-	-lsqlite3\
-	-bind_at_load
+TOOL_NAME = keychain_dumper
 
-GCC_ARM = $(GCC_BIN) -Os -Wimplicit -isysroot $(SDK) $(ARCH_FLAGS)
+keychain_dumper_FILES = main.m
+keychain_dumper_CFLAGS = -fno-objc-arc
+keychain_dumper_CODESIGN_FLAGS = -Sentitlements.xml
+keychain_dumper_INSTALL_PATH = /usr/bin
 
-default: main.o list
-	@$(GCC_ARM) $(LDFLAGS) main.o -o keychain_dumper
-
-main.o: main.m
-	$(GCC_ARM) -c main.m
-
-clean:
-	rm -f keychain_dumper *.o
-
-list:
-	security find-identity -pcodesigning
-	@printf '\nTo codesign, please run: \n\tCER="<40 character hex string for certificate>" make codesign\n'
-
-codesign:
-	codesign -fs "$(CER)" --entitlements entitlements.xml keychain_dumper
+include $(THEOS_MAKE_PATH)/tool.mk
+SUBPROJECTS += securitydhook
+include $(THEOS_MAKE_PATH)/aggregate.mk
+ 
